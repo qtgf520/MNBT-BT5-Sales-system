@@ -84,7 +84,7 @@ if (!function_exists('mnbt_pay_settle_order')) {
 				return ['ok' => false, 'msg' => '程序购买写入失败'];
 			}
 			mnbt_pay_log('一键部署购买处理成功 用户' . ($ddxx_cs['user'] ?? ''), '处理成功', $out_trade_no);
-		} else {
+		} elseif ($ddxx['lx'] == 'ymgm') {
 			// 域名购买
 			$ddxx_url = $ddxx_cs['url_zd'] ?? '';
 			$user = $ddxx_cs['user'] ?? '';
@@ -156,6 +156,10 @@ if (!function_exists('mnbt_pay_settle_order')) {
 				return ['ok' => false, 'msg' => '域名购买记录写入失败'];
 			}
 			mnbt_pay_log('域名购买处理成功 用户' . $user . ' 域名' . $ul_url_ym, '处理成功', $out_trade_no);
+		} else {
+			// 其他业务类型（如余额充值）：核心不处理具体业务，仅标记订单完成并触发 order.paid 钩子，
+			// 由对应插件（如 balance 插件）在 order.paid 回调中处理。
+			mnbt_pay_log('扩展业务类型 ' . $ddxx['lx'] . '，交由 order.paid 钩子处理', '处理成功', $out_trade_no);
 		}
 
 		if (!$DB->query_prepare("update `MN_dd` set `qk` =? where `ddh`=?", ['true', $out_trade_no])) {
