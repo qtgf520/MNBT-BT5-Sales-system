@@ -47,6 +47,8 @@ app_plugins/{slug}/
 | `mnbt_register_widget` | 仪表盘小部件 |
 | `mnbt_register_settings_tab` | 插件管理页快捷入口 |
 | `mnbt_http_get` / `mnbt_http_post` | 安全出站 HTTP |
+| `mnbt_register_home` | 首页接管（`/` 路径，P2） |
+| `mnbt_register_route` | 通用路由，支持路径参数（P2） |
 
 完整参数与示例见 **[PLUGIN_DEV.md](./PLUGIN_DEV.md)**。
 
