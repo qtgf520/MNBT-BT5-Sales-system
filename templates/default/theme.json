@@ -1,0 +1,8 @@
+{
+  "name": "default",
+  "title": "默认主题",
+  "version": "1.0.0",
+  "description": "MNBT 官方默认用户端主题（由原 user 端页面迁移）",
+  "author": "MNBT",
+  "scope": "user"
+}
