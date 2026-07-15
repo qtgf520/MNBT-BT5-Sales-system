@@ -19,6 +19,9 @@ $GLOBALS['mnbt_plugin_settings_tabs'] = [];
 $GLOBALS['mnbt_plugin_meta'] = [];
 $GLOBALS['mnbt_plugin_current'] = null;
 $GLOBALS['mnbt_plugin_booted'] = false;
+// 首页接管与通用路由（V1.81 P2）
+$GLOBALS['mnbt_plugin_home_handlers'] = [];
+$GLOBALS['mnbt_plugin_routes'] = [];
 
 function mnbt_plugin_ensure_tables()
 {
@@ -829,4 +832,231 @@ function mnbt_plugins_boot()
 	if (isset($islogins) && (int)$islogins === 1) {
 		mnbt_do_action('init.user');
 	}
+}
+
+/**
+ * ============================================================
+ *  V1.81 P2：首页接管与通用路由
+ * ============================================================
+ */
+
+/**
+ * 计算当前请求相对于站点根目录的路径（去掉 base path 与查询串）。
+ * 用于子目录部署：https://example.com/mnbt/landing?x=1 → /landing
+ * @return array{path:string,method:string,base:string}
+ */
+function mnbt_plugin_request_info()
+{
+	$scriptName = isset($_SERVER['SCRIPT_NAME']) ? str_replace('\\', '/', $_SERVER['SCRIPT_NAME']) : '';
+	$basePath = rtrim(str_replace('\\', '/', dirname($scriptName)), '/');
+	if ($basePath === '.' || $basePath === '/') {
+		$basePath = '';
+	}
+	$uri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
+	$path = parse_url($uri, PHP_URL_PATH) ?: '';
+	// 去掉 base path 前缀
+	if ($basePath !== '' && strpos($path, $basePath) === 0) {
+		$path = substr($path, strlen($basePath));
+	}
+	if ($path === '' || $path === false) {
+		$path = '/';
+	}
+	// 规范化：确保以 / 开头
+	if ($path !== '' && $path[0] !== '/') {
+		$path = '/' . $path;
+	}
+	$method = isset($_SERVER['REQUEST_METHOD']) ? strtoupper($_SERVER['REQUEST_METHOD']) : 'GET';
+	return ['path' => $path, 'method' => $method, 'base' => $basePath];
+}
+
+/**
+ * 注册首页接管回调。
+ *
+ * 回调签名：function (array $ctx): mixed
+ *   - 返回 string  → 视为重定向 URL，引擎会 header("Location: ...") + exit
+ *   - 返回 true    → 视为已渲染（回调内自行 echo），引擎直接 exit
+ *   - 返回 false/null → 不接管，继续下一个回调
+ *
+ * @param callable $callback
+ * @param int      $priority  数字越小越先执行（默认 10）
+ * @return bool
+ */
+function mnbt_register_home($callback, $priority = 10)
+{
+	if (!is_callable($callback)) {
+		return false;
+	}
+	$priority = (int)$priority;
+	if (!isset($GLOBALS['mnbt_plugin_home_handlers'][$priority])) {
+		$GLOBALS['mnbt_plugin_home_handlers'][$priority] = [];
+	}
+	$GLOBALS['mnbt_plugin_home_handlers'][$priority][] = [
+		'cb' => $callback,
+		'plugin' => $GLOBALS['mnbt_plugin_current'],
+	];
+	return true;
+}
+
+/**
+ * 分发首页接管。
+ * 由根目录 index.php 在请求路径为 / 时调用。
+ *
+ * @return bool  true 表示已被插件接管（请求已终止）；false 表示无插件接管，调用方走默认逻辑
+ */
+function mnbt_plugin_dispatch_home()
+{
+	if (empty($GLOBALS['mnbt_plugin_home_handlers'])) {
+		return false;
+	}
+	$info = mnbt_plugin_request_info();
+	// 仅当路径为 / 时才视作"首页"请求
+	if ($info['path'] !== '/') {
+		return false;
+	}
+	$buckets = $GLOBALS['mnbt_plugin_home_handlers'];
+	ksort($buckets, SORT_NUMERIC);
+	$ctx = [
+		'path' => $info['path'],
+		'method' => $info['method'],
+		'base' => $info['base'],
+	];
+	foreach ($buckets as $list) {
+		foreach ($list as $item) {
+			$prev = $GLOBALS['mnbt_plugin_current'];
+			$GLOBALS['mnbt_plugin_current'] = $item['plugin'];
+			try {
+				$result = call_user_func($item['cb'], $ctx);
+			} catch (Throwable $e) {
+				error_log('[MNBT plugin] home @' . ($item['plugin'] ?? '?') . ': ' . $e->getMessage());
+				$GLOBALS['mnbt_plugin_current'] = $prev;
+				continue;
+			}
+			$GLOBALS['mnbt_plugin_current'] = $prev;
+			// 返回字符串 → 重定向
+			if (is_string($result) && $result !== '') {
+				header('Location: ' . $result);
+				exit;
+			}
+			// 返回 true → 已渲染
+			if ($result === true) {
+				exit;
+			}
+			// false / null / 其他 → 不接管，继续
+		}
+	}
+	return false;
+}
+
+/**
+ * 注册通用路由。
+ *
+ * 路径支持命名参数：/promo/{id}  →  匹配 /promo/123，回调收到 ['id'=>'123']
+ * 路径必须以 / 开头；尾斜杠可选（自动同时匹配带/不带尾斜杠两种形式）。
+ *
+ * 回调签名：function (array $params, array $ctx): mixed
+ *   - 回调内自行 echo 输出，返回 true 或不返回（null）→ 引擎 exit 终止
+ *   - 返回 false → 不接管，继续匹配下一个路由
+ *
+ * @param string   $method    'GET'/'POST'/'PUT'/'DELETE'/'HEAD'/'*'（* 匹配任意）
+ * @param string   $path      如 '/landing' 或 '/promo/{id}'
+ * @param callable $callback
+ * @param int      $priority
+ * @return bool
+ */
+function mnbt_register_route($method, $path, $callback, $priority = 10)
+{
+	if (!is_callable($callback)) {
+		return false;
+	}
+	$method = strtoupper((string)$method);
+	if ($method === '') {
+		$method = '*';
+	}
+	$path = (string)$path;
+	if ($path === '' || $path[0] !== '/') {
+		$path = '/' . $path;
+	}
+	// 编译路径为正则 + 参数名列表
+	$paramNames = [];
+	$regex = preg_replace_callback('/\{([a-zA-Z_][a-zA-Z0-9_]*)\}/', function ($m) use (&$paramNames) {
+		$paramNames[] = $m[1];
+		return '([^/]+)';
+	}, $path);
+	$regex = '#^' . $regex . '/?$#';
+	$priority = (int)$priority;
+	if (!isset($GLOBALS['mnbt_plugin_routes'][$priority])) {
+		$GLOBALS['mnbt_plugin_routes'][$priority] = [];
+	}
+	$GLOBALS['mnbt_plugin_routes'][$priority][] = [
+		'method' => $method,
+		'path' => $path,
+		'regex' => $regex,
+		'params' => $paramNames,
+		'cb' => $callback,
+		'plugin' => $GLOBALS['mnbt_plugin_current'],
+	];
+	return true;
+}
+
+/**
+ * 分发通用路由。
+ * 由 index.php 或 _router.php 在请求未命中实际文件时调用。
+ *
+ * @return bool  true 表示已匹配并由插件处理（请求已终止）；false 表示无匹配
+ */
+function mnbt_plugin_dispatch_route()
+{
+	if (empty($GLOBALS['mnbt_plugin_routes'])) {
+		return false;
+	}
+	$info = mnbt_plugin_request_info();
+	$buckets = $GLOBALS['mnbt_plugin_routes'];
+	ksort($buckets, SORT_NUMERIC);
+	foreach ($buckets as $list) {
+		foreach ($list as $item) {
+			// 方法匹配
+			if ($item['method'] !== '*' && $item['method'] !== $info['method']) {
+				continue;
+			}
+			// 路径匹配
+			if (!preg_match($item['regex'], $info['path'], $matches)) {
+				continue;
+			}
+			// 提取命名参数
+			$params = [];
+			array_shift($matches); // 去掉完整匹配
+			foreach ($item['params'] as $i => $name) {
+				$params[$name] = isset($matches[$i]) ? $matches[$i] : '';
+			}
+			$prev = $GLOBALS['mnbt_plugin_current'];
+			$GLOBALS['mnbt_plugin_current'] = $item['plugin'];
+			$ctx = [
+				'path' => $info['path'],
+				'method' => $info['method'],
+				'base' => $info['base'],
+				'plugin' => $item['plugin'],
+				'route' => $item['path'],
+			];
+			try {
+				$result = call_user_func($item['cb'], $params, $ctx);
+			} catch (Throwable $e) {
+				error_log('[MNBT plugin] route ' . $item['method'] . ' ' . $item['path'] . ' @' . ($item['plugin'] ?? '?') . ': ' . $e->getMessage());
+				$GLOBALS['mnbt_plugin_current'] = $prev;
+				continue;
+			}
+			$GLOBALS['mnbt_plugin_current'] = $prev;
+			// 返回 false → 显式不接管，继续匹配
+			if ($result === false) {
+				continue;
+			}
+			// 其他情况（true / null / 字符串）→ 视为已处理
+			// 若回调返回字符串且未自行输出，作为兜底 echo
+			if (is_string($result) && $result !== '' && !headers_sent()) {
+				header('Content-Type: text/html; charset=UTF-8');
+				echo $result;
+			}
+			exit;
+		}
+	}
+	return false;
 }
