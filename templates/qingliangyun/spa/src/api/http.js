@@ -28,7 +28,15 @@ export async function postGn(gn, data = {}) {
   Object.keys(data).forEach((k) => {
     const v = data[k]
     if (v === undefined || v === null) return
-    body.append(k, typeof v === 'object' ? JSON.stringify(v) : String(v))
+    if (Array.isArray(v)) {
+      v.forEach((item, i) => body.append(`${k}[${i}]`, String(item)))
+      return
+    }
+    if (typeof v === 'object') {
+      body.append(k, JSON.stringify(v))
+      return
+    }
+    body.append(k, String(v))
   })
 
   const res = await http.post(ajaxUrl(), body, {
@@ -62,11 +70,18 @@ export function parseResult(data) {
   if (data.success === true || data.success === 1 || data.success === '1') {
     return { ok: true, message: data.code || data.msg || 'ok', data: data.msg ?? data.data ?? data, raw: data }
   }
+  // SSL 等接口用 qk 字段
+  if (data.qk === 1 || data.qk === '1') {
+    return { ok: true, message: data.code || data.msg || 'ok', data: data.msg ?? data.data ?? data, raw: data }
+  }
+  if (data.status === true) {
+    return { ok: true, message: data.msg || data.code || 'ok', data: data.data ?? data, raw: data }
+  }
   const code = data.code
-  if (code === '登陆成功' || code === '绑定成功' || code === '获取成功！') {
+  if (code === '登陆成功' || code === '绑定成功' || code === '获取成功！' || code === '获取成功') {
     return { ok: true, message: code, data: data.msg ?? data.data ?? data, raw: data }
   }
-  if (typeof code === 'string' && (code.includes('成功') || code.includes('完成'))) {
+  if (typeof code === 'string' && (code.includes('成功') || code.includes('完成') || code.includes('已保存'))) {
     return { ok: true, message: code, data: data.msg ?? data.data ?? data, raw: data }
   }
   return {

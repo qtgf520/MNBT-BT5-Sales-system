@@ -261,7 +261,7 @@ const shortcuts = computed(() => {
   return [
     { label: '域名', path: '/settings/url', icon: Link },
     { label: 'SSL', path: '/settings/ssl', icon: Lock },
-    { label: '文件管理', legacy: 'ftp.php', title: '在线文件管理', icon: FolderOpened },
+    { label: '文件管理', path: '/ftp', icon: FolderOpened },
     { label: '监控', path: '/monitor', icon: Monitor },
     { label: '改密', path: '/settings/xgpass', icon: Key },
     { label: '统计', path: '/stats', icon: DataAnalysis },
@@ -269,10 +269,6 @@ const shortcuts = computed(() => {
 })
 
 function go(s) {
-  if (s.legacy) {
-    router.push({ path: '/legacy', query: { u: s.legacy, t: s.title || s.label } })
-    return
-  }
   if (s.path) router.push(s.path)
 }
 

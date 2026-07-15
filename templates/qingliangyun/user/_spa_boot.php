@@ -23,7 +23,7 @@ $boot = [
 	'logo' => mnbt_asset_url('upload_logo/logo.login.png'),
 	'auther' => $conf['auther'] ?? '',
 	'theme' => 'qingliangyun',
-	'version' => '0.1.0',
+	'version' => '0.1.1',
 	'entry' => $ql_entry ?? 'dashboard',
 	'hash' => $ql_hash ?? '',
 ];

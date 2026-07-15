@@ -14,8 +14,11 @@
 | 登录页 | 毛玻璃卡片、圆角主按钮、验证码支持 |
 | 控制台壳 | 侧栏 + 顶栏，移动端抽屉菜单 |
 | 仪表盘 | **圆形进度**展示网页空间 / 数据库 / 流量 |
-| 业务页 | 复杂页（set / ftp / 监控等）iframe 复用 `default` 能力，保证功能完整 |
-| 路由 | Hash 模式（`#/dashboard`），不改 PHP 控制器 URL |
+| 设置页 | 原生 Element Plus：PHP/域名/SSL/Gzip/缓存/防盗链/改密等 |
+| 监控 / 通知 | 原生表格 + 弹窗 CRUD |
+| 统计 / 备份 / 部署 | 原生卡片与列表 |
+| 文件管理 | 入口页 + 完整管理器（`ftp.php`，功能过多暂保留独立页） |
+| 路由 | Hash 模式，不改 PHP 控制器 URL |
 
 ---
 
@@ -128,9 +131,21 @@ PHP 入口通过 `mnbt_theme_url('dist/assets/index.js')` 加载。
 
 仍请求 **`./ajax.php`**，`gn` 与官方一致（如 `login`、`indexconf`、`sxsyxx`、`phpxg`）。
 
-### iframe 业务页
+### 面板 JSON 接口（`user/api/panel.php`）
 
-为避免递归加载 SPA，iframe 访问加 `?_ql=1`，对应 PHP 视图会 **include default 主题** 的完整页面。
+| gn | 用途 |
+|----|------|
+| `monitor_list` / `monitor_log_list` | 监控任务与日志 |
+| `notice_list` | 通知列表 |
+| `backup_list` / `deploy_list` | 备份与部署包 |
+| `set_init` | 设置页初始化数据 |
+| `pass_list` | 密码访问目录列表 |
+
+业务写操作仍走原有 `phpxg`、`urllist`、`setssl`、`monitor_save` 等接口。
+
+### 文件管理说明
+
+`ftp.php` 含完整在线编辑器与上传逻辑，体量大，0.1.x 提供清凉云风格入口，完整能力在独立页打开。后续可拆分 listfile API 做纯 Vue 文件树。
 
 ---
 
@@ -153,14 +168,15 @@ PHP 入口通过 `mnbt_theme_url('dist/assets/index.js')` 加载。
 
 ---
 
-## 已知限制（0.1.0）
+## 已知限制
 
-- 设置 / 文件管理 / 一键部署等仍为 iframe 内嵌 default UI  
-- 后续版本可将高频设置项逐步改为原生 Element Plus 表单  
+- 文件管理完整 UI 仍用 `ftp.php`（入口已主题化）  
+- 部分 BT 返回字段因版本差异可能需兼容调整  
 - 管理端未提供本主题皮肤  
 
 ---
 
 ## 版本
 
-- **0.1.0** 首版 SPA 壳 + 登录 + 仪表盘圆形进度 + 业务 iframe 兼容
+- **0.1.0** SPA 壳 + 登录 + 仪表盘  
+- **0.1.1** 业务页原生化：设置 / 监控 / 通知 / 统计 / 备份 / 部署 + panel API
