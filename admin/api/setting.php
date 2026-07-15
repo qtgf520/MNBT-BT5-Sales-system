@@ -110,5 +110,24 @@ if($egn == "jkscsz")
     }
 		return;
 }
+if($egn == 'settheme')
+{
+	$usertheme = mnbt_theme_sanitize($_POST['usertheme'] ?? '');
+	$admintheme = mnbt_theme_sanitize($_POST['admintheme'] ?? '');
+	if ($usertheme === '' || $admintheme === '') {
+		json_exit('请选择用户端和管理端主题');
+	}
+	list($okUser, $msgUser) = mnbt_theme_set_active('user', $usertheme);
+	if (!$okUser) {
+		json_exit($msgUser);
+	}
+	list($okAdmin, $msgAdmin) = mnbt_theme_set_active('admin', $admintheme);
+	if (!$okAdmin) {
+		json_exit($msgAdmin);
+	}
+	logjl($user, '主题设置', '用户端=' . $usertheme . ' 管理端=' . $admintheme, '修改成功', $DB);
+	json_exit('修改成功');
+	return;
+}
 
 return;
