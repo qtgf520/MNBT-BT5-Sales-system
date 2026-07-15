@@ -15,11 +15,11 @@ if($yhc['mailuser'] == "" || $yhc['mailuser'] == null)
 ?>
 
 <!--图形插件-->
-<script type="text/javascript" src="../imsetes/js/Chart.min.js"></script>
+<script type="text/javascript" src="<?=mnbt_asset_url('js/Chart.min.js')?>"></script>
 <!--对话框-->
-<script type="text/javascript" src="../imsetes/js/jquery-confirm/jquery-confirm.min.js"></script>
-<script type="text/javascript" src="../imsetes/js/bootstrap-table/bootstrap-table.min.js"></script>
-<script type="text/javascript" src="../imsetes/js/bootstrap-table/locale/bootstrap-table-zh-CN.min.js"></script>
+<script type="text/javascript" src="<?=mnbt_asset_url('js/jquery-confirm/jquery-confirm.min.js')?>"></script>
+<script type="text/javascript" src="<?=mnbt_asset_url('js/bootstrap-table/bootstrap-table.min.js')?>"></script>
+<script type="text/javascript" src="<?=mnbt_asset_url('js/bootstrap-table/locale/bootstrap-table-zh-CN.min.js')?>"></script>
 
 <div class="container-fluid col-15">
 <div class="row">

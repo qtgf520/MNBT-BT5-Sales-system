@@ -30,15 +30,15 @@ if($conf['hxw']=='amftp' || $conf['hxw']==''){
 }
 ?>
 <!--对话框-->
-<script type="text/javascript" src="../imsetes/js/jquery-confirm/jquery-confirm.min.js"></script>
-<script type="text/javascript" src="../imsetes/js/bootstrap-table/bootstrap-table.min.js"></script>
-<script type="text/javascript" src="../imsetes/js/bootstrap-table/locale/bootstrap-table-zh-CN.min.js"></script>
+<script type="text/javascript" src="<?=mnbt_asset_url('js/jquery-confirm/jquery-confirm.min.js')?>"></script>
+<script type="text/javascript" src="<?=mnbt_asset_url('js/bootstrap-table/bootstrap-table.min.js')?>"></script>
+<script type="text/javascript" src="<?=mnbt_asset_url('js/bootstrap-table/locale/bootstrap-table-zh-CN.min.js')?>"></script>
 <!--代码编辑插件-->
-<link href="../imsetes/codemirror/lib/codemirror.css" rel="stylesheet" type="text/css">
-<link id="thme-filecod" href="../imsetes/codemirror/theme/3024-night.css" rel="stylesheet" type="text/css">
-<link href="../imsetes/codemirror/addon/display/fullscreen.css" rel="stylesheet" type="text/css">
-<link href="../imsetes/codemirror/addon/dialog/dialog.css" rel="stylesheet" type="text/css">        <!--文件内容搜索框美化-->
-<link rel="stylesheet" href="../imsetes/codemirror/addon/hint/show-hint.css"><!--代码提示-->
+<link href="<?=mnbt_asset_url('codemirror/lib/codemirror.css')?>" rel="stylesheet" type="text/css">
+<link id="thme-filecod" href="<?=mnbt_asset_url('codemirror/theme/3024-night.css')?>" rel="stylesheet" type="text/css">
+<link href="<?=mnbt_asset_url('codemirror/addon/display/fullscreen.css')?>" rel="stylesheet" type="text/css">
+<link href="<?=mnbt_asset_url('codemirror/addon/dialog/dialog.css')?>" rel="stylesheet" type="text/css">        <!--文件内容搜索框美化-->
+<link rel="stylesheet" href="<?=mnbt_asset_url('codemirror/addon/hint/show-hint.css')?>"><!--代码提示-->
 
 <div class="container-fluid p-t-15">
 
@@ -258,33 +258,33 @@ if($conf['hxw']=='amftp' || $conf['hxw']==''){
     </div>
 </div>
 <!-- 引入CodeMirror核心文件 -->
-<script type="text/javascript" src="../imsetes/codemirror/lib/codemirror.js"></script>
-<script src="../imsetes/codemirror/mode/clike/clike.js"></script>
+<script type="text/javascript" src="<?=mnbt_asset_url('codemirror/lib/codemirror.js')?>"></script>
+<script src="<?=mnbt_asset_url('codemirror/mode/clike/clike.js')?>"></script>
 <!-- CodeMirror支持不同语言，根据需要引入JS文件 -->
 <!-- 因为HTML混合语言依赖Javascript、XML、CSS语言支持，所以都要引入 -->
-<script type="text/javascript" src="../imsetes/codemirror/mode/javascript/javascript.js"></script>
-<script type="text/javascript" src="../imsetes/codemirror/mode/xml/xml.js"></script>
-<script type="text/javascript" src="../imsetes/codemirror/mode/css/css.js"></script>
-<script type="text/javascript" src="../imsetes/codemirror/mode/htmlmixed/htmlmixed.js"></script>
-<script type="text/javascript" src="../imsetes/codemirror/mode/sql/sql.js"></script>
-<script type="text/javascript" src="../imsetes/codemirror/mode/php/php.js"></script>
+<script type="text/javascript" src="<?=mnbt_asset_url('codemirror/mode/javascript/javascript.js')?>"></script>
+<script type="text/javascript" src="<?=mnbt_asset_url('codemirror/mode/xml/xml.js')?>"></script>
+<script type="text/javascript" src="<?=mnbt_asset_url('codemirror/mode/css/css.js')?>"></script>
+<script type="text/javascript" src="<?=mnbt_asset_url('codemirror/mode/htmlmixed/htmlmixed.js')?>"></script>
+<script type="text/javascript" src="<?=mnbt_asset_url('codemirror/mode/sql/sql.js')?>"></script>
+<script type="text/javascript" src="<?=mnbt_asset_url('codemirror/mode/php/php.js')?>"></script>
 
 <!-- 下面分别为显示行数、括号匹配和全屏插件和自动刷新 -->
-<script type="text/javascript" src="../imsetes/codemirror/addon/selection/active-line.js"></script>
-<script type="text/javascript" src="../imsetes/codemirror/addon/edit/matchbrackets.js"></script>
-<script type="text/javascript" src="../imsetes/codemirror/addon/display/fullscreen.js"></script>
-<script type="text/javascript" src="../imsetes/codemirror/addon/display/autorefresh.js"></script>
-<script type="text/javascript" src="../imsetes/codemirror/addon/edit/closebrackets.js"></script><!--自动闭合括号-->
-<script type="text/javascript" src="../imsetes/codemirror/addon/search/search.js"></script>  <!--搜索内容-->
-<script type="text/javascript" src="../imsetes/codemirror/addon/search/searchcursor.js"></script>  <!--查找上一个-->
-<script type="text/javascript" src="../imsetes/codemirror/addon/search/jump-to-line.js"></script>  <!--查找下一个-->
-<script type="text/javascript" src="../imsetes/codemirror/addon/dialog/dialog.js"></script>  <!--搜索框美化-->
+<script type="text/javascript" src="<?=mnbt_asset_url('codemirror/addon/selection/active-line.js')?>"></script>
+<script type="text/javascript" src="<?=mnbt_asset_url('codemirror/addon/edit/matchbrackets.js')?>"></script>
+<script type="text/javascript" src="<?=mnbt_asset_url('codemirror/addon/display/fullscreen.js')?>"></script>
+<script type="text/javascript" src="<?=mnbt_asset_url('codemirror/addon/display/autorefresh.js')?>"></script>
+<script type="text/javascript" src="<?=mnbt_asset_url('codemirror/addon/edit/closebrackets.js')?>"></script><!--自动闭合括号-->
+<script type="text/javascript" src="<?=mnbt_asset_url('codemirror/addon/search/search.js')?>"></script>  <!--搜索内容-->
+<script type="text/javascript" src="<?=mnbt_asset_url('codemirror/addon/search/searchcursor.js')?>"></script>  <!--查找上一个-->
+<script type="text/javascript" src="<?=mnbt_asset_url('codemirror/addon/search/jump-to-line.js')?>"></script>  <!--查找下一个-->
+<script type="text/javascript" src="<?=mnbt_asset_url('codemirror/addon/dialog/dialog.js')?>"></script>  <!--搜索框美化-->
 <!--自动提示-->
-<script src="../imsetes/codemirror/addon/hint/show-hint.js"></script>
-<script src="../imsetes/codemirror/addon/hint/sql-hint.js"></script>
-<script src="../imsetes/codemirror/addon/hint/xml-hint.js"></script>
-<script src="../imsetes/codemirror/addon/hint/html-hint.js"></script>
-<script src="../imsetes/codemirror/addon/hint/javascript-hint.js"></script>
+<script src="<?=mnbt_asset_url('codemirror/addon/hint/show-hint.js')?>"></script>
+<script src="<?=mnbt_asset_url('codemirror/addon/hint/sql-hint.js')?>"></script>
+<script src="<?=mnbt_asset_url('codemirror/addon/hint/xml-hint.js')?>"></script>
+<script src="<?=mnbt_asset_url('codemirror/addon/hint/html-hint.js')?>"></script>
+<script src="<?=mnbt_asset_url('codemirror/addon/hint/javascript-hint.js')?>"></script>
 
 <script type="text/javascript">
     paths='/';
@@ -296,7 +296,7 @@ if($conf['hxw']=='amftp' || $conf['hxw']==''){
     }else{
         var thmers=localStorage.getItem("themes");
         if(thmers!='default'){
-            document.getElementById("thme-filecod").href="../imsetes/codemirror/theme/"+thmers+".css";
+            document.getElementById("thme-filecod").href="<?=mnbt_asset_url('codemirror/theme/')?>"+thmers+".css";
         }
         $("option[value='dqs']").html('编辑器主题[当前'+thmers+']');
     }
@@ -363,7 +363,7 @@ if($conf['hxw']=='amftp' || $conf['hxw']==''){
         var thmers=this.options[this.selectedIndex].textContent;
         if(this.options[this.selectedIndex].value!='dqs'){
             if(thmers!='default'){
-                document.getElementById("thme-filecod").href="../imsetes/codemirror/theme/"+thmers+".css";
+                document.getElementById("thme-filecod").href="<?=mnbt_asset_url('codemirror/theme/')?>"+thmers+".css";
             }
             CodeMirrorEditor.setOption("theme", thmers);
             //将选择的主题缓存到本地
@@ -1281,6 +1281,6 @@ if($conf['hxw']=='amftp' || $conf['hxw']==''){
     });
 </script>
 <!--文件上传-->
-<script type="text/javascript" src="../imsetes/js/upload.js?1"></script>
+<script type="text/javascript" src="<?=mnbt_asset_url('js/upload.js')?>?1"></script>
 </body>
 </html>

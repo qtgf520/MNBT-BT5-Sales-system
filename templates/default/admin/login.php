@@ -51,10 +51,10 @@
 }
 </style>
 </head>
-<body class="center-vh" style="background-image: url(../imsetes/images/login-bg-6.jpg?1); background-size: cover;">
+<body class="center-vh" style="background-image: url(<?=mnbt_asset_url('images/login-bg-6.jpg')?>?1); background-size: cover;">
 <div class="login-box p-5 w-420 mb-0 mr-2 ml-2">
   <div class="text-center mb-3">
-    <a href="./"> <img alt="MNBT admin" src="../imsetes/admin_logo/logo.login.png?1"> </a>
+    <a href="./"> <img alt="MNBT admin" src="<?=mnbt_asset_url('admin_logo/logo.login.png')?>?1"> </a>
   </div>
   <form class="login-form">
     <div class="form-group has-feedback">

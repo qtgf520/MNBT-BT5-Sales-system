@@ -1,8 +1,8 @@
 <?php mnbt_admin_include('head'); ?>
 <?php header("Cache-Control: no-cache, must-revalidate"); ?>
-<script type="text/javascript" src="../imsetes/js/md5.js"></script>
-<script type="text/javascript" src="../imsetes/js/xtset.js?hc=<? echo $date?>"></script>
-<link rel="stylesheet" href="<?=mnbt_theme_url('assets/set-page.css', 'admin')?>">
+<script type="text/javascript" src="<?=mnbt_asset_url('js/md5.js')?>"></script>
+<script type="text/javascript" src="<?=mnbt_asset_url('js/xtset.js')?>?hc=<? echo $date?>"></script>
+<link rel="stylesheet" href="<?=mnbt_theme_asset('set-page.css', 'admin')?>">
 
 <div class="mn-set-page">
 <?php

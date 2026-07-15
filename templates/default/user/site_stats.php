@@ -1,5 +1,5 @@
 <?php mnbt_theme_include('head'); ?>
-<script type="text/javascript" src="../imsetes/js/Chart.min.js"></script>
+<script type="text/javascript" src="<?=mnbt_asset_url('js/Chart.min.js')?>"></script>
 <style>
 .st-page-card>.card-header{align-items:center;flex-wrap:wrap;gap:10px}
 .st-page-title{display:flex;align-items:center;gap:8px}
