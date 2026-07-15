@@ -141,7 +141,9 @@ mnbt_register_route('POST', '/account/api/register', function ($params, $ctx) {
 		user_info_json('注册失败，请稍后重试');
 	}
 
-	$new_id = $DB->insert_id();
+	// 取自增 ID（兼容 MySQLi / SQLite）
+	$new_row = $DB->get_row_prepare("SELECT id FROM MN_plugin_user WHERE username=? LIMIT 1", [$username]);
+	$new_id = $new_row ? (int)$new_row['id'] : 0;
 	user_info_auth_login($new_id, $hash);
 	user_info_json('注册成功', ['redirect' => user_info_url('account/profile')]);
 });
