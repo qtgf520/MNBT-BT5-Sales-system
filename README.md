@@ -24,6 +24,7 @@
 - [前端模板](#前端模板)
 - [主题开发](#主题开发)
 - [PHP 业务插件](#php-业务插件)
+- [插件开发](#插件开发)
 - [安全说明](#安全说明)
 - [常见问题](#常见问题)
 - [更新日志](#更新日志)
@@ -499,15 +500,18 @@ templates/my_theme/
 
 1. 将插件目录放入 `app_plugins/{slug}/`（需 `plugin.json` + `bootstrap.php`）
 2. 后台 → 系统管理 → **插件管理** → 安装 → 启用
-3. 已有站点执行一次 `update/update_v181_plugin.sql`（或依赖自动建表）
+3. **整页刷新**后台；侧栏出现「插件」菜单（若插件注册了菜单）
+4. 已有站点执行一次 `update/update_v181_plugin.sql`（或依赖自动建表）
 
 ### 文档与示例
 
 | 路径 | 说明 |
 |------|------|
-| [app_plugins/README.md](app_plugins/README.md) | API、钩子、安全约定 |
+| **[app_plugins/PLUGIN_DEV.md](app_plugins/PLUGIN_DEV.md)** | **插件开发手册**（新建步骤、API、钩子、安全、FAQ） |
+| [app_plugins/README.md](app_plugins/README.md) | 目录约定、快速启用、API 摘要 |
 | `app_plugins/hello_demo/` | 官方示例（菜单 / 配置 / AJAX / 主机事件） |
-| `MPHX/plugin.php` | 插件引擎 |
+| `app_plugins/webhook_notify/` | Webhook 通知插件 |
+| `MPHX/plugin.php` | 插件引擎源码 |
 
 ### 能力
 
@@ -517,6 +521,46 @@ templates/my_theme/
 - 配置：`mnbt_plugin_option_get/set`
 - 页面：`admin/plugin.php?p=slug&page=...`、`user/plugin.php?p=slug&page=...`
 - 内置插件：`webhook_notify`（事件 Webhook）
+
+---
+
+## 插件开发
+
+完整开发说明见 **[app_plugins/PLUGIN_DEV.md](app_plugins/PLUGIN_DEV.md)**（与 [主题开发手册](templates/THEME_DEV.md) 并列）。
+
+### 最短新建流程
+
+```text
+app_plugins/my_plugin/
+├── plugin.json      # name / version / description
+├── bootstrap.php    # 注册菜单、AJAX、钩子
+└── admin/index.php  # 可选后台页
+```
+
+1. 编写 `plugin.json` + `bootstrap.php`（用 `mnbt_register_*` / `mnbt_add_action`）
+2. 后台 → **插件管理** → 安装 → 启用 → 整页刷新
+3. AJAX：`POST admin/ajax.php`，`gn` 建议 `p_my_plugin_*`
+4. 页面：`admin/plugin.php?p=my_plugin&page=index`
+
+### 手册章节索引
+
+| 章节 | 内容 |
+|------|------|
+| 设计原则 | 不改核心 URL、option 表、路径隔离 |
+| 新建插件 | 目录、`plugin.json`、`bootstrap` 模板、自测清单 |
+| 核心 API | 钩子 / AJAX / 菜单页面 / 配置 / 小部件 / HTTP |
+| 钩子一览 | `host.*`、`order.paid`、`cron` 及触发位置 |
+| 数据库 | `MN_plugin`、自建表前缀 `plg_*` |
+| 安全与 FAQ | 鉴权、冲突、SPA、在线更新 |
+
+### 与主题开发对照
+
+| | 主题 | 插件 |
+|--|------|------|
+| 目录 | `templates/{id}/` | `app_plugins/{slug}/` |
+| 手册 | [templates/THEME_DEV.md](templates/THEME_DEV.md) | [app_plugins/PLUGIN_DEV.md](app_plugins/PLUGIN_DEV.md) |
+| 职责 | 外观与页面 HTML | 业务能力、事件、对接 |
+| 后台开关 | 系统管理 → 前端模板 | 系统管理 → 插件管理 |
 
 ---
 
@@ -639,6 +683,11 @@ backup/
 
 - 新增「站点与管理员」步骤：控制面板名称、站长 QQ、公告、管理员账号/密码
 - 安装完成写入 `MN_config`；完成页展示登录信息（不再固定 admin/123456）
+
+**文档**
+
+- 插件开发手册：[app_plugins/PLUGIN_DEV.md](app_plugins/PLUGIN_DEV.md)
+- 仓库 README 增加 [插件开发](#插件开发) 入口
 
 ### V1.80
 
