@@ -318,3 +318,35 @@ function jkscsz()
     })
 }
 
+function settheme() {
+    var ut = document.getElementById('usertheme');
+    var at = document.getElementById('admintheme');
+    if (!ut || !at) {
+        msalert(4, '主题选择控件未找到', 2000);
+        return;
+    }
+    if (!ut.value || !at.value) {
+        msalert(3, '请选择用户端和管理端主题', 2000);
+        return;
+    }
+    msloading('正在保存主题设置...','text-info','text-info');
+    var data = {};
+    data['gn'] = 'settheme';
+    data['usertheme'] = ut.value;
+    data['admintheme'] = at.value;
+    $.post('./ajax.php', data, function (date) {
+        var jsoe = JSON.parse(date);
+        var qk = jsoe.code;
+        if (qk == '修改成功') {
+            msalert(1, '修改成功！将在两秒后刷新页面！', 2000);
+            setTimeout(function () {
+                window.location.href = './set.php?gn=theme';
+            }, 2000);
+        } else {
+            msalert(4, qk, 3000);
+            msloadingde();
+        }
+    });
+}
+
+
