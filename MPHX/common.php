@@ -56,6 +56,7 @@ $password_hash='!@#%!s!0';
 include_once(SYSTEM_ROOT."Response.php");
 include_once(SYSTEM_ROOT."function.php");
 include_once(SYSTEM_ROOT."member.php");
+include_once(SYSTEM_ROOT."theme.php");
 require_once(SYSTEM_ROOT."lib/core.function.php");
 require_once(SYSTEM_ROOT."lib/md5.function.php");
 ?>
