@@ -31,6 +31,6 @@ if (!empty($mn_conf['xf']['qk'])) {
 <script type="text/javascript" src="<?=mnbt_asset_url('js/fn-hs.js')?>?1.74"></script>
 <link href="<?=mnbt_asset_url('js/bootstrap-table/bootstrap-table.min.css')?>" rel="stylesheet">
 <link href="<?=mnbt_asset_url('js/jquery-confirm/jquery-confirm.min.css')?>" rel="stylesheet">
-<link href="<?=mnbt_theme_url('assets/user-common.css')?>" rel="stylesheet">
+<link href="<?=mnbt_theme_asset('user-common.css')?>" rel="stylesheet">
 </head>
 <body>

@@ -53,10 +53,10 @@
 </style>
 </head>
   
-<body class="center-vh" style="background-image: url(../imsetes/images/1.jpg); background-size: cover;">
+<body class="center-vh" style="background-image: url(<?=mnbt_asset_url('images/1.jpg')?>); background-size: cover;">
 <div class="login-box p-5 w-420 mb-0 mr-2 ml-2">
   <div class="text-center mb-3">
-    <a href="login.php"> <img alt="MNBT" src="../imsetes/upload_logo/logo.login.png?<?=$conf['auther']?>"> </a>
+    <a href="login.php"> <img alt="MNBT" src="<?=mnbt_asset_url('upload_logo/logo.login.png')?>?<?=$conf['auther']?>"> </a>
   </div>
   <form action="#!" method="post" class="login-form">
     <div class="form-group has-feedback">

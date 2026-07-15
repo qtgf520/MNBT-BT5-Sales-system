@@ -1,8 +1,8 @@
 <?php mnbt_theme_include('head'); ?>
 <!--对话框-->
-<script type="text/javascript" src="../imsetes/js/jquery-confirm/jquery-confirm.min.js"></script>
-<script type="text/javascript" src="../imsetes/js/bootstrap-table/bootstrap-table.min.js"></script>
-<script type="text/javascript" src="../imsetes/js/bootstrap-table/locale/bootstrap-table-zh-CN.min.js"></script>
+<script type="text/javascript" src="<?=mnbt_asset_url('js/jquery-confirm/jquery-confirm.min.js')?>"></script>
+<script type="text/javascript" src="<?=mnbt_asset_url('js/bootstrap-table/bootstrap-table.min.js')?>"></script>
+<script type="text/javascript" src="<?=mnbt_asset_url('js/bootstrap-table/locale/bootstrap-table-zh-CN.min.js')?>"></script>
    <div class="container" style="padding-top:5%;">
 <div class="row card-pricing-row">
 <?php
@@ -145,8 +145,8 @@ echo '<div class="col-12"><div class="card"><div class="card-body text-center te
             </div>
           </div>
 </body>
-<script type="text/javascript" src="../imsetes/js/bootstrap-maxlength/bootstrap-maxlength.min.js"></script>
-<script type="text/javascript" src="../imsetes/js/formbs.js?<?=$date?>"></script>
+<script type="text/javascript" src="<?=mnbt_asset_url('js/bootstrap-maxlength/bootstrap-maxlength.min.js')?>"></script>
+<script type="text/javascript" src="<?=mnbt_asset_url('js/formbs.js')?>?<?=$date?>"></script>
 <script type="text/javascript">
 
 

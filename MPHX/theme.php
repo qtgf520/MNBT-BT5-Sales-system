@@ -86,21 +86,59 @@ function mnbt_theme_resolve($view, $scope = 'user')
 
 /**
  * 主题静态资源 URL（相对 user/ 或 admin/ 页面）
+ * 查找顺序：当前主题 → default 主题（缺文件自动回退）
+ * @param string $path 相对 scope 根目录，如 assets/login.css
+ * @param string $scope user|admin
  */
 function mnbt_theme_url($path = '', $scope = 'user')
 {
 	$scope = ($scope === 'admin') ? 'admin' : 'user';
 	$path = ltrim(str_replace('\\', '/', (string)$path), '/');
-	$base = '../templates/' . mnbt_theme_name($scope) . '/' . $scope . '/';
-	return $path === '' ? $base : $base . $path;
+	if ($path !== '' && (strpos($path, '..') !== false || $path[0] === '/')) {
+		$path = '';
+	}
+	$theme = mnbt_theme_name($scope);
+	if ($path === '') {
+		return '../templates/' . $theme . '/' . $scope . '/';
+	}
+	$candidates = [$theme];
+	if ($theme !== MNBT_THEME_DEFAULT) {
+		$candidates[] = MNBT_THEME_DEFAULT;
+	}
+	foreach ($candidates as $t) {
+		if (is_file(MNBT_THEME_ROOT . $t . '/' . $scope . '/' . $path)) {
+			return '../templates/' . $t . '/' . $scope . '/' . $path;
+		}
+	}
+	return '../templates/' . $theme . '/' . $scope . '/' . $path;
 }
 
 /**
- * 公共静态资源（imsetes）URL
+ * 主题 assets/ 快捷 URL（自动加 assets/ 前缀，带 default 回退）
+ * 例：mnbt_theme_asset('login.css') → .../user/assets/login.css
+ */
+function mnbt_theme_asset($path = '', $scope = 'user')
+{
+	$path = ltrim(str_replace('\\', '/', (string)$path), '/');
+	if ($path === '') {
+		return mnbt_theme_url('assets/', $scope);
+	}
+	if (strpos($path, 'assets/') !== 0) {
+		$path = 'assets/' . $path;
+	}
+	return mnbt_theme_url($path, $scope);
+}
+
+/**
+ * 公共静态资源（imsetes）URL — 全站共享，不随主题切换
+ * Bootstrap / jQuery / CodeMirror / 上传 logo 等放这里
  */
 function mnbt_asset_url($path = '')
 {
 	$path = ltrim(str_replace('\\', '/', (string)$path), '/');
+	if ($path !== '' && strpos($path, '..') !== false) {
+		$path = '';
+	}
 	return $path === '' ? '../imsetes/' : '../imsetes/' . $path;
 }
 

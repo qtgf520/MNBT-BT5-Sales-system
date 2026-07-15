@@ -115,8 +115,9 @@ templates/{theme}/user/sy.php（视图）
 | `mnbt_admin_render($view, ...)` | 渲染管理端视图 |
 | `mnbt_theme_include($view, $vars=[], $scope='user')` | 引入局部模板（如 head） |
 | `mnbt_admin_include($view, ...)` | 管理端局部模板 |
-| `mnbt_theme_url($path, $scope)` | 主题内静态资源 URL |
-| `mnbt_asset_url($path)` | 公共资源 `imsetes/` URL |
+| `mnbt_theme_url($path, $scope)` | 主题内静态资源 URL（缺文件回退 default） |
+| `mnbt_theme_asset($path, $scope)` | 主题 `assets/` 快捷 URL |
+| `mnbt_asset_url($path)` | 公共资源 `imsetes/` URL（不随主题切换） |
 | `mnbt_theme_list($scope)` | 扫描已安装主题 |
 | `mnbt_theme_set_active($scope, $name)` | 切换当前主题 |
 | `mnbt_theme_name($scope)` | 当前主题名 |

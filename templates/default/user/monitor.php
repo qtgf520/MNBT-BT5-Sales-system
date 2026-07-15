@@ -1,5 +1,5 @@
 <?php mnbt_theme_include('head'); ?>
-<script type="text/javascript" src="../imsetes/js/jquery-confirm/jquery-confirm.min.js"></script>
+<script type="text/javascript" src="<?=mnbt_asset_url('js/jquery-confirm/jquery-confirm.min.js')?>"></script>
 <div class="container-fluid p-t-15">
   <div class="row">
     <div class="col-lg-12">

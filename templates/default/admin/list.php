@@ -1,19 +1,19 @@
 <?php mnbt_admin_include('head'); ?>
 
-<script type="text/javascript" src="../imsetes/js/jquery-confirm/jquery-confirm.min.js"></script>
-<script type="text/javascript" src="../imsetes/js/bootstrap-table/bootstrap-table.min.js"></script>
-<script type="text/javascript" src="../imsetes/js/bootstrap-table/locale/bootstrap-table-zh-CN.min.js"></script>
+<script type="text/javascript" src="<?=mnbt_asset_url('js/jquery-confirm/jquery-confirm.min.js')?>"></script>
+<script type="text/javascript" src="<?=mnbt_asset_url('js/bootstrap-table/bootstrap-table.min.js')?>"></script>
+<script type="text/javascript" src="<?=mnbt_asset_url('js/bootstrap-table/locale/bootstrap-table-zh-CN.min.js')?>"></script>
 
-<script type="text/javascript" src="../imsetes/js/md5.js"></script> 
+<script type="text/javascript" src="<?=mnbt_asset_url('js/md5.js')?>"></script> 
 
 <?php
 $set=isset($_GET['gn'])?$_GET["gn"]:NULL;
 if($set=='bt'){
 ?>
 <!--对话框-->
-<script type="text/javascript" src="../imsetes/js/jquery-confirm/jquery-confirm.min.js"></script>
-<script type="text/javascript" src="../imsetes/js/bootstrap-table/bootstrap-table.min.js"></script>
-<script type="text/javascript" src="../imsetes/js/bootstrap-table/locale/bootstrap-table-zh-CN.min.js"></script>
+<script type="text/javascript" src="<?=mnbt_asset_url('js/jquery-confirm/jquery-confirm.min.js')?>"></script>
+<script type="text/javascript" src="<?=mnbt_asset_url('js/bootstrap-table/bootstrap-table.min.js')?>"></script>
+<script type="text/javascript" src="<?=mnbt_asset_url('js/bootstrap-table/locale/bootstrap-table-zh-CN.min.js')?>"></script>
 
 <div class="container-fluid p-t-15">
 
@@ -413,9 +413,9 @@ msloadingde();
 </html>
 
 <?php }elseif($set=='zj'){?>
-<link href="../imsetes/js/bootstrap-datepicker/bootstrap-datepicker3.min.css" rel="stylesheet">
-<link href="../imsetes/js/bootstrap-datetimepicker/bootstrap-datetimepicker.min.css" rel="stylesheet">
-<link href="../imsetes/js/bootstrap-clockpicker/bootstrap-clockpicker.min.css" rel="stylesheet">
+<link href="<?=mnbt_asset_url('js/bootstrap-datepicker/bootstrap-datepicker3.min.css')?>" rel="stylesheet">
+<link href="<?=mnbt_asset_url('js/bootstrap-datetimepicker/bootstrap-datetimepicker.min.css')?>" rel="stylesheet">
+<link href="<?=mnbt_asset_url('js/bootstrap-clockpicker/bootstrap-clockpicker.min.css')?>" rel="stylesheet">
 <div class="container-fluid p-t-15">
 
 <div class="modal fade" id="tanchuang" tabindex="-1" role="dialog" aria-labelledby="tanchuang" aria-hidden="true">
@@ -546,9 +546,9 @@ msloadingde();
   </div>
   
 </div>
-<script src="../imsetes/js/bootstrap-datepicker/bootstrap-datepicker.min.js"></script>
-<script src="../imsetes/js/bootstrap-datepicker/locales/bootstrap-datepicker.zh-CN.min.js"></script>
-<script type="text/javascript" src="../imsetes/js/main.min.js"></script>
+<script src="<?=mnbt_asset_url('js/bootstrap-datepicker/bootstrap-datepicker.min.js')?>"></script>
+<script src="<?=mnbt_asset_url('js/bootstrap-datepicker/locales/bootstrap-datepicker.zh-CN.min.js')?>"></script>
+<script type="text/javascript" src="<?=mnbt_asset_url('js/main.min.js')?>"></script>
 <script type="text/javascript">
     var where={"name":null,"type":null,"value":null};
 
@@ -938,7 +938,7 @@ msloadingde();
 
 
 <?php }elseif($set=='cx'){?>
-<script type="text/javascript" src="../imsetes/js/addbs.js?<?=$date?>"></script>
+<script type="text/javascript" src="<?=mnbt_asset_url('js/addbs.js')?>?<?=$date?>"></script>
 <div class="container-fluid p-t-15">
 
 <div class="modal fade" id="tanchuang" tabindex="-1" role="dialog" aria-labelledby="tanchuang" aria-hidden="true">

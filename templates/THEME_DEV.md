@@ -185,38 +185,61 @@ mnbt_admin_render('set');
 
 ---
 
-## 5. 静态资源
+## 5. 静态资源隔离
 
-### 5.1 公共资源（全站共享）
+### 5.1 两类资源（必须分清）
 
-位于 `imsetes/`（Bootstrap、jQuery、图标、CodeMirror 等）。
+| 类型 | 目录 | API | 是否随主题切换 |
+|------|------|-----|----------------|
+| **公共资源** | `imsetes/` | `mnbt_asset_url()` | 否 |
+| **主题私有** | `templates/{theme}/{scope}/assets/` | `mnbt_theme_asset()` / `mnbt_theme_url()` | 是（缺文件回退 default） |
+
+**公共资源**（不要复制进主题）：Bootstrap、jQuery、CodeMirror、图表库、上传 logo（`upload_logo/` / `admin_logo/`）、业务脚本（`fn-hs.js`、`xtset.js` 等）。
+
+**主题私有**（改皮肤放这里）：覆盖样式、登录页背景、主题专属 JS/图片。
+
+### 5.2 公共资源写法
 
 ```php
 <link href="<?= mnbt_asset_url('css/bootstrap.min.css') ?>" rel="stylesheet">
 <script src="<?= mnbt_asset_url('js/jquery.min.js') ?>"></script>
+<img src="<?= mnbt_asset_url('upload_logo/logo.login.png') ?>?<?= $conf['auther'] ?>">
 ```
 
-从 `user/` 或 `admin/` 页面访问时，等价于 `../imsetes/...`。
+等价于 `../imsetes/...`。**模板中禁止再写死 `../imsetes/`**，便于以后改公共资源根路径。
 
-### 5.2 主题私有资源
-
-放在主题目录下，例如：
+### 5.3 主题私有资源
 
 ```text
 templates/my_theme/user/assets/login.css
 templates/my_theme/admin/assets/set-page.css
+templates/my_theme/admin/assets/admin-common.css
 ```
 
-引用：
+推荐写法（自动加 `assets/` 前缀）：
 
 ```php
-<link href="<?= mnbt_theme_url('assets/login.css', 'user') ?>" rel="stylesheet">
-<link href="<?= mnbt_theme_url('assets/set-page.css', 'admin') ?>" rel="stylesheet">
+<link href="<?= mnbt_theme_asset('login.css') ?>" rel="stylesheet">
+<link href="<?= mnbt_theme_asset('set-page.css', 'admin') ?>" rel="stylesheet">
 ```
 
-### 5.3 缓存
+等价于：
 
-可在 URL 后追加版本参数，例如：
+```php
+<link href="<?= mnbt_theme_url('assets/login.css') ?>" rel="stylesheet">
+```
+
+### 5.4 资源回退规则
+
+与页面模板相同：
+
+1. 当前主题：`templates/{theme}/{scope}/assets/xxx.css`  
+2. 不存在 → `templates/default/{scope}/assets/xxx.css`  
+3. 仍不存在 → 仍返回当前主题 URL（便于你补文件时定位 404）
+
+因此自定义主题**只需覆盖要改的 CSS**，其余私有资源会用 default 的。
+
+### 5.5 缓存
 
 ```php
 <script src="<?= mnbt_asset_url('js/fn-hs.js') ?>?1.80"></script>
@@ -347,11 +370,13 @@ my_theme.zip
 
 | 文件 | 职责 |
 |------|------|
-| `MPHX/theme.php` | 引擎实现 |
+| `MPHX/theme.php` | 引擎实现（render / asset URL / 切换） |
 | `MPHX/common.php` | 加载引擎 |
 | `admin/set.php?gn=theme` | 切换 UI |
 | `admin/api/setting.php` → `settheme` | 保存接口 |
 | `imsetes/js/xtset.js` → `settheme()` | 前端保存脚本 |
+| `imsetes/` | 公共静态资源（`mnbt_asset_url`） |
+| `templates/default/**/assets/` | 默认主题私有资源（`mnbt_theme_asset`） |
 | `templates/default/**` | 官方默认视图 |
 
 ---
@@ -361,5 +386,6 @@ my_theme.zip
 - 主题系统自 MNBT 主题化改造版本起提供（见主仓库 `dev/v1.80` 及后续正式版）  
 - 升级程序时：自定义主题目录一般可保留；若官方 `default` 新增页面，旧主题未覆盖则自动用新 default  
 - 若官方修改某页 DOM 结构，依赖旧 DOM 的自定义主题可能需跟进调整  
+- 资源 API：`mnbt_theme_url` 会对主题私有文件做 default 回退；`mnbt_asset_url` 始终指向 `imsetes/`  
 
 如有疑问，可在项目 Issue 中反馈并附上主题目录结构与报错截图。

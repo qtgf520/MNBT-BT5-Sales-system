@@ -8,16 +8,16 @@
 <meta name="description" content="MNBT后台">
 <meta name="author" content="yinq">
 <title>MN宝塔主机系统-后台管理</title>
-<link rel="icon" href="../imsetes/images/logo-ico.png" type="image/ico">
+<link rel="icon" href="<?=mnbt_asset_url('images/logo-ico.png')?>" type="image/ico">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-touch-fullscreen" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" type="text/css" href="../imsetes/css/materialdesignicons.min.css">
-<link rel="stylesheet" type="text/css" href="../imsetes/css/bootstrap.min.css">
-<link rel="stylesheet" type="text/css" href="../imsetes/js/bootstrap-multitabs/multitabs.min.css">
-<link rel="stylesheet" type="text/css" href="../imsetes/css/animate.min.css">
-<link rel="stylesheet" type="text/css" href="../imsetes/css/style.min.css">
-<script type="text/javascript" src="../imsetes/js/fn-hs.js"></script>
+<link rel="stylesheet" type="text/css" href="<?=mnbt_asset_url('css/materialdesignicons.min.css')?>">
+<link rel="stylesheet" type="text/css" href="<?=mnbt_asset_url('css/bootstrap.min.css')?>">
+<link rel="stylesheet" type="text/css" href="<?=mnbt_asset_url('js/bootstrap-multitabs/multitabs.min.css')?>">
+<link rel="stylesheet" type="text/css" href="<?=mnbt_asset_url('css/animate.min.css')?>">
+<link rel="stylesheet" type="text/css" href="<?=mnbt_asset_url('css/style.min.css')?>">
+<script type="text/javascript" src="<?=mnbt_asset_url('js/fn-hs.js')?>"></script>
 <style>
 .textmntti {
     margin: 2px 10px;
@@ -43,7 +43,7 @@
     <aside class="lyear-layout-sidebar"> 
       
       <!-- logo -->
-      <div id="logo" class="sidebar-header"> <a href="index.php"> <img src="../imsetes/admin_logo/logo.index.png" title="MN_logo" alt="MN_logo" /> </a> </div>
+      <div id="logo" class="sidebar-header"> <a href="index.php"> <img src="<?=mnbt_asset_url('admin_logo/logo.index.png')?>" title="MN_logo" alt="MN_logo" /> </a> </div>
       <div class="lyear-layout-sidebar-info lyear-scroll">
         <nav class="sidebar-main">
           <ul class="nav-drawer">
@@ -208,7 +208,7 @@
             </ul>
           </li>
           <!--切换主题配色-->
-          <li class="dropdown dropdown-profile"> <a href="javascript:void(0)" data-toggle="dropdown" class="dropdown-toggle"> <img class="img-avatar img-avatar-48 m-r-10" src="../imsetes/admin_logo/logo.head.png"
+          <li class="dropdown dropdown-profile"> <a href="javascript:void(0)" data-toggle="dropdown" class="dropdown-toggle"> <img class="img-avatar img-avatar-48 m-r-10" src="<?=mnbt_asset_url('admin_logo/logo.head.png')?>"
 										 alt="Admin" /> <span>超级管理员</span> </a>
             <ul class="dropdown-menu dropdown-menu-right">
               <li> <a class="multitabs dropdown-item" data-url="./set.php?gn=wz"
@@ -279,20 +279,20 @@
     <!--End 页面主要内容--> 
   </div>
 </div>
-<script type="text/javascript" src="../imsetes/js/jquery.min.js"></script> 
-<script type="text/javascript" src="../imsetes/js/popper.min.js"></script> 
-<script type="text/javascript" src="../imsetes/js/bootstrap.min.js"></script> 
-<script type="text/javascript" src="../imsetes/js/perfect-scrollbar.min.js"></script> 
-<script type="text/javascript" src="../imsetes/js/bootstrap-multitabs/multitabs.min.js"></script> 
-<script type="text/javascript" src="../imsetes/js/jquery.cookie.min.js"></script> 
-<script type="text/javascript" src="../imsetes/js/index.min.js"></script> 
+<script type="text/javascript" src="<?=mnbt_asset_url('js/jquery.min.js')?>"></script> 
+<script type="text/javascript" src="<?=mnbt_asset_url('js/popper.min.js')?>"></script> 
+<script type="text/javascript" src="<?=mnbt_asset_url('js/bootstrap.min.js')?>"></script> 
+<script type="text/javascript" src="<?=mnbt_asset_url('js/perfect-scrollbar.min.js')?>"></script> 
+<script type="text/javascript" src="<?=mnbt_asset_url('js/bootstrap-multitabs/multitabs.min.js')?>"></script> 
+<script type="text/javascript" src="<?=mnbt_asset_url('js/jquery.cookie.min.js')?>"></script> 
+<script type="text/javascript" src="<?=mnbt_asset_url('js/index.min.js')?>"></script> 
 
 <!--消息提示--> 
-<script type="text/javascript" src="../imsetes/js/bootstrap.min.js"></script> 
-<script type="text/javascript" src="../imsetes/js/lyear-loading.js"></script> 
-<script type="text/javascript" src="../imsetes/js/main.min.js"></script> 
-<script type="text/javascript" src="../imsetes/js/fn-hs.js"></script> 
-<script type="text/javascript" src="../imsetes/js/bootstrap-notify.min.js"></script> 
+<script type="text/javascript" src="<?=mnbt_asset_url('js/bootstrap.min.js')?>"></script> 
+<script type="text/javascript" src="<?=mnbt_asset_url('js/lyear-loading.js')?>"></script> 
+<script type="text/javascript" src="<?=mnbt_asset_url('js/main.min.js')?>"></script> 
+<script type="text/javascript" src="<?=mnbt_asset_url('js/fn-hs.js')?>"></script> 
+<script type="text/javascript" src="<?=mnbt_asset_url('js/bootstrap-notify.min.js')?>"></script> 
 <script type="text/javascript">
 			<?php if($mn_conf['xf']['qk']){
 			echo '$("#xfmr").trigger("click");';
@@ -354,7 +354,7 @@
 			$(this).css({animation: "rotate 0.5s linear 1",display: "inline-block"});
 			setTimeout(function(){$("#iframe_shuax").removeAttr('style');},500);
 			//页面loading
-			$('#'+ifarid).contents().find('body').html('<link href="../imsetes/css/index.loading.css" rel="stylesheet"><div class="loading_upds"><div class="ctn-preloader"><div class="round_spinner"><div class="spinner"></div><img src="../imsetes/admin_logo/logo.head.png" alt=""></div</div></div>');
+			$('#'+ifarid).contents().find('body').html('<link href="<?=mnbt_asset_url('css/index.loading.css')?>" rel="stylesheet"><div class="loading_upds"><div class="ctn-preloader"><div class="round_spinner"><div class="spinner"></div><img src="<?=mnbt_asset_url('admin_logo/logo.head.png')?>" alt=""></div</div></div>');
 			
 			$('#'+ifarid).attr('src', $('#'+ifarid).attr('src'));       //刷新子页面
 			})
@@ -367,14 +367,14 @@
 			var htmlfr=$('#'+ifarid).contents().find('body').html();
 			if(htmlfr==''){
 			//页面loading
-			$('#'+ifarid).contents().find('body').html('<link href="../imsetes/css/style.min.css" rel="stylesheet"><link href="../imsetes/css/bootstrap.min.css" rel="stylesheet"><link href="../imsetes/css/index.loading.css" rel="stylesheet"><div class="loading_upds"><div class="ctn-preloader"><div class="round_spinner"><div class="spinner"></div><img src="../imsetes/upload_logo/logo.head.png" alt=""></div</div></div>');
+			$('#'+ifarid).contents().find('body').html('<link href="<?=mnbt_asset_url('css/style.min.css')?>" rel="stylesheet"><link href="<?=mnbt_asset_url('css/bootstrap.min.css')?>" rel="stylesheet"><link href="<?=mnbt_asset_url('css/index.loading.css')?>" rel="stylesheet"><div class="loading_upds"><div class="ctn-preloader"><div class="round_spinner"><div class="spinner"></div><img src="<?=mnbt_asset_url('upload_logo/logo.head.png')?>" alt=""></div</div></div>');
 			}
 			}, 10);
 			});
 			
 			
 			setTimeout(function(){
-			$('#multitabs_main_0').contents().find('body').html('<link href="../imsetes/css/style.min.css" rel="stylesheet"><link href="../imsetes/css/bootstrap.min.css" rel="stylesheet"><link href="../imsetes/css/index.loading.css" rel="stylesheet"><div class="loading_upds"><div class="ctn-preloader"><div class="round_spinner"><div class="spinner"></div><img src="../imsetes/upload_logo/logo.head.png?<?=$conf['auther']?>" alt=""></div</div></div>');
+			$('#multitabs_main_0').contents().find('body').html('<link href="<?=mnbt_asset_url('css/style.min.css')?>" rel="stylesheet"><link href="<?=mnbt_asset_url('css/bootstrap.min.css')?>" rel="stylesheet"><link href="<?=mnbt_asset_url('css/index.loading.css')?>" rel="stylesheet"><div class="loading_upds"><div class="ctn-preloader"><div class="round_spinner"><div class="spinner"></div><img src="<?=mnbt_asset_url('upload_logo/logo.head.png')?>?<?=$conf['auther']?>" alt=""></div</div></div>');
 			},1)
 		</script>
 </body>

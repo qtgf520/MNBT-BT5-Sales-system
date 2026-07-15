@@ -1,5 +1,5 @@
 <?php mnbt_theme_include('head'); ?>
-  <script type="text/javascript" src="../imsetes/js/md5.js"></script>
+  <script type="text/javascript" src="<?=mnbt_asset_url('js/md5.js')?>"></script>
    <div class="container" style="padding-top:5%;">
 
 <?php
@@ -342,9 +342,9 @@ elseif($set=='url' && $yhc['hxc']!='1'){
 $cert=$DB->get_row_prepare("SELECT * FROM MN_bt WHERE btdh=? limit 1", [$ssbt]);
 ?>
 <!--对话框-->
-<script type="text/javascript" src="../imsetes/js/jquery-confirm/jquery-confirm.min.js"></script>
-<script type="text/javascript" src="../imsetes/js/bootstrap-table/bootstrap-table.min.js"></script>
-<script type="text/javascript" src="../imsetes/js/bootstrap-table/locale/bootstrap-table-zh-CN.min.js"></script>
+<script type="text/javascript" src="<?=mnbt_asset_url('js/jquery-confirm/jquery-confirm.min.js')?>"></script>
+<script type="text/javascript" src="<?=mnbt_asset_url('js/bootstrap-table/bootstrap-table.min.js')?>"></script>
+<script type="text/javascript" src="<?=mnbt_asset_url('js/bootstrap-table/locale/bootstrap-table-zh-CN.min.js')?>"></script>
 <div class="col-lg-5">
       <div class="card">
         <div class="card-header">
@@ -943,9 +943,9 @@ elseif($set == "mysqlcz")
     $r_data = $api->GetDatabaseAccess($name);
 	?>
 	<!--对话框-->
-<script type="text/javascript" src="../imsetes/js/jquery-confirm/jquery-confirm.min.js"></script>
-<script type="text/javascript" src="../imsetes/js/bootstrap-table/bootstrap-table.min.js"></script>
-<script type="text/javascript" src="../imsetes/js/bootstrap-table/locale/bootstrap-table-zh-CN.min.js"></script>
+<script type="text/javascript" src="<?=mnbt_asset_url('js/jquery-confirm/jquery-confirm.min.js')?>"></script>
+<script type="text/javascript" src="<?=mnbt_asset_url('js/bootstrap-table/bootstrap-table.min.js')?>"></script>
+<script type="text/javascript" src="<?=mnbt_asset_url('js/bootstrap-table/locale/bootstrap-table-zh-CN.min.js')?>"></script>
 <div class="col-sm-6">
       <div class="card">
         <div class="card-header">
@@ -1038,9 +1038,9 @@ $php_version = $apist->btapi_phpnowz($yhc['sqldz'])['phpversion'];
 ?>
 
 	<!--对话框-->
-<script type="text/javascript" src="../imsetes/js/jquery-confirm/jquery-confirm.min.js"></script>
-<script type="text/javascript" src="../imsetes/js/bootstrap-table/bootstrap-table.min.js"></script>
-<script type="text/javascript" src="../imsetes/js/bootstrap-table/locale/bootstrap-table-zh-CN.min.js"></script>
+<script type="text/javascript" src="<?=mnbt_asset_url('js/jquery-confirm/jquery-confirm.min.js')?>"></script>
+<script type="text/javascript" src="<?=mnbt_asset_url('js/bootstrap-table/bootstrap-table.min.js')?>"></script>
+<script type="text/javascript" src="<?=mnbt_asset_url('js/bootstrap-table/locale/bootstrap-table-zh-CN.min.js')?>"></script>
 <div class="col-sm-6">
       <div class="card">
         <div class="card-header">
@@ -1451,9 +1451,9 @@ msloadingde();  // 隐藏
 $cert=$DB->get_row_prepare("SELECT * FROM MN_bt WHERE btdh=? limit 1", [$ssbt]);
 ?>
 <!--对话框-->
-<script type="text/javascript" src="../imsetes/js/jquery-confirm/jquery-confirm.min.js"></script>
-<script type="text/javascript" src="../imsetes/js/bootstrap-table/bootstrap-table.min.js"></script>
-<script type="text/javascript" src="../imsetes/js/bootstrap-table/locale/bootstrap-table-zh-CN.min.js"></script>
+<script type="text/javascript" src="<?=mnbt_asset_url('js/jquery-confirm/jquery-confirm.min.js')?>"></script>
+<script type="text/javascript" src="<?=mnbt_asset_url('js/bootstrap-table/bootstrap-table.min.js')?>"></script>
+<script type="text/javascript" src="<?=mnbt_asset_url('js/bootstrap-table/locale/bootstrap-table-zh-CN.min.js')?>"></script>
 <div class="col-sm-6">
       <div class="card">
         <div class="card-header">
@@ -1843,7 +1843,7 @@ $api = new bt_api($btipe,$btkeye);
 $cache_data = $api->get_static_cache($yhc['sqldz']);
 $cache_rules = $cache_data['data'] ?? [];
 ?>
-<script type="text/javascript" src="../imsetes/js/jquery-confirm/jquery-confirm.min.js"></script>
+<script type="text/javascript" src="<?=mnbt_asset_url('js/jquery-confirm/jquery-confirm.min.js')?>"></script>
 <div class="col-sm-8">
     <div class="card">
         <div class="card-header">

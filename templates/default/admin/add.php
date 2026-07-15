@@ -136,9 +136,9 @@ msloadingde();
 }}
   </script> 
 <?php }elseif($set=='zj'){?>
-<link href="../imsetes/js/bootstrap-datepicker/bootstrap-datepicker3.min.css" rel="stylesheet">
-<link href="../imsetes/js/bootstrap-datetimepicker/bootstrap-datetimepicker.min.css" rel="stylesheet">
-<link href="../imsetes/js/bootstrap-clockpicker/bootstrap-clockpicker.min.css" rel="stylesheet">
+<link href="<?=mnbt_asset_url('js/bootstrap-datepicker/bootstrap-datepicker3.min.css')?>" rel="stylesheet">
+<link href="<?=mnbt_asset_url('js/bootstrap-datetimepicker/bootstrap-datetimepicker.min.css')?>" rel="stylesheet">
+<link href="<?=mnbt_asset_url('js/bootstrap-clockpicker/bootstrap-clockpicker.min.css')?>" rel="stylesheet">
 
 <div class="container-fluid p-t-15">
   
@@ -227,9 +227,9 @@ $bt_list=$DB->get_all_prepare("SELECT * FROM MN_bt order by id desc limit 100");
 
 </div>
 <!--日期选择插件-->
-<script src="../imsetes/js/bootstrap-datepicker/bootstrap-datepicker.min.js"></script>
-<script src="../imsetes/js/bootstrap-datepicker/locales/bootstrap-datepicker.zh-CN.min.js"></script>
-<script type="text/javascript" src="../imsetes/js/main.min.js"></script>
+<script src="<?=mnbt_asset_url('js/bootstrap-datepicker/bootstrap-datepicker.min.js')?>"></script>
+<script src="<?=mnbt_asset_url('js/bootstrap-datepicker/locales/bootstrap-datepicker.zh-CN.min.js')?>"></script>
+<script type="text/javascript" src="<?=mnbt_asset_url('js/main.min.js')?>"></script>
  <script type="text/javascript">
 function _sel(val){
 var vio=val.value;
@@ -301,13 +301,13 @@ msloadingde();
 <?php }elseif($set=='cx'){
 ?>
 <!--对话框-->
-<script type="text/javascript" src="../imsetes/js/jquery-confirm/jquery-confirm.min.js"></script>
-<script type="text/javascript" src="../imsetes/js/bootstrap-table/bootstrap-table.min.js"></script>
-<script type="text/javascript" src="../imsetes/js/bootstrap-table/locale/bootstrap-table-zh-CN.min.js"></script>
+<script type="text/javascript" src="<?=mnbt_asset_url('js/jquery-confirm/jquery-confirm.min.js')?>"></script>
+<script type="text/javascript" src="<?=mnbt_asset_url('js/bootstrap-table/bootstrap-table.min.js')?>"></script>
+<script type="text/javascript" src="<?=mnbt_asset_url('js/bootstrap-table/locale/bootstrap-table-zh-CN.min.js')?>"></script>
 <!--图片选择插件-->
-<script src="../imsetes/js/dropzone/min/basic.min.css"></script>
-<script src="../imsetes/js/dropzone/min/dropzone.min.css"></script>
-<script src="../imsetes/js/dropzone/min/dropzone.min.js"></script>
+<script src="<?=mnbt_asset_url('js/dropzone/min/basic.min.css')?>"></script>
+<script src="<?=mnbt_asset_url('js/dropzone/min/dropzone.min.css')?>"></script>
+<script src="<?=mnbt_asset_url('js/dropzone/min/dropzone.min.js')?>"></script>
 
 <div class="container-fluid p-t-15">
   
@@ -505,10 +505,10 @@ msloadingde();
 
 </div>
 <!--日期选择插件-->
-<script src="../imsetes/js/bootstrap-datepicker/bootstrap-datepicker.min.js"></script>
-<script src="../imsetes/js/bootstrap-datepicker/locales/bootstrap-datepicker.zh-CN.min.js"></script>
-<script type="text/javascript" src="../imsetes/js/main.min.js"></script>
-<script type="text/javascript" src="../imsetes/js/addbs.js?<?=$date?>"></script>
+<script src="<?=mnbt_asset_url('js/bootstrap-datepicker/bootstrap-datepicker.min.js')?>"></script>
+<script src="<?=mnbt_asset_url('js/bootstrap-datepicker/locales/bootstrap-datepicker.zh-CN.min.js')?>"></script>
+<script type="text/javascript" src="<?=mnbt_asset_url('js/main.min.js')?>"></script>
+<script type="text/javascript" src="<?=mnbt_asset_url('js/addbs.js')?>?<?=$date?>"></script>
 <script>
 tpnamesz='0';
 //文件选择监听
@@ -650,9 +650,9 @@ $(function() {
 <?php }elseif($set=='dr'){          //导入程序
 ?>
 <!--对话框-->
-<script type="text/javascript" src="../imsetes/js/jquery-confirm/jquery-confirm.min.js"></script>
-<script type="text/javascript" src="../imsetes/js/bootstrap-table/bootstrap-table.min.js"></script>
-<script type="text/javascript" src="../imsetes/js/bootstrap-table/locale/bootstrap-table-zh-CN.min.js"></script>
+<script type="text/javascript" src="<?=mnbt_asset_url('js/jquery-confirm/jquery-confirm.min.js')?>"></script>
+<script type="text/javascript" src="<?=mnbt_asset_url('js/bootstrap-table/bootstrap-table.min.js')?>"></script>
+<script type="text/javascript" src="<?=mnbt_asset_url('js/bootstrap-table/locale/bootstrap-table-zh-CN.min.js')?>"></script>
 
 <div class="container-fluid p-t-15">
   

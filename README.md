@@ -443,13 +443,22 @@ templates/my_theme/
 
 未提供的页面自动回退到 `templates/default/`。详细步骤与必选页面列表见 [THEME_DEV.md](templates/THEME_DEV.md)。
 
+### 资源约定
+
+| 类型 | 目录 | 引用 |
+|------|------|------|
+| 公共（Bootstrap / jQuery / logo 等） | `imsetes/` | `mnbt_asset_url('css/...')` |
+| 主题私有 CSS/JS | `templates/{theme}/{user\|admin}/assets/` | `mnbt_theme_asset('xxx.css')` |
+
+主题私有资源缺文件时自动回退 `default` 主题同路径。
+
 ### 核心代码
 
 | 路径 | 说明 |
 |------|------|
-| `MPHX/theme.php` | `mnbt_render` / `mnbt_admin_render` / 主题列表与切换 |
-| `templates/default/user/` | 默认用户端视图 |
-| `templates/default/admin/` | 默认管理端视图 |
+| `MPHX/theme.php` | `mnbt_render` / `mnbt_theme_asset` / 主题列表与切换 |
+| `templates/default/user/` | 默认用户端视图 + `assets/` |
+| `templates/default/admin/` | 默认管理端视图 + `assets/` |
 | `admin/api/setting.php` | `settheme` 保存接口 |
 
 ---
@@ -616,6 +625,7 @@ backup/
 
 - **前端主题系统**：用户端 / 管理端视图迁入 `templates/`，支持独立切换与缺页回退
 - 主题引擎 `MPHX/theme.php`；后台「系统管理 → 前端模板」可视化切换
+- **主题资源隔离**：公共资源 `mnbt_asset_url()`（`imsetes/`）与主题私有 `mnbt_theme_asset()`（`templates/*/assets/`，缺文件回退 default）
 - 主题文档：`templates/README.md`、`templates/THEME_DEV.md`
 - 管理端设置页改为现代卡片布局
 - 修复安装 SQL 空语句导致 `Query was empty`
