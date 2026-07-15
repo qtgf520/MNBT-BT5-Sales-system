@@ -147,7 +147,7 @@ if($egn=='delnode') {
     $DB->query_prepare("DELETE FROM `MN_forbidden_scan` WHERE `node_id`=?", [$nodeId]);
     $DB->query_prepare("DELETE FROM `MN_forbidden_match` WHERE `node_id`=?", [$nodeId]);
     $ok = $DB->query_prepare("DELETE FROM `MN_node` WHERE `id`=? LIMIT 1", [$id]);
-    if ($ok) {
+    if ($ok && $DB->affected() > 0) {
         mnbt_admin_node_log($user, '节点管理', '删除节点 '.$nodeId, $DB);
         mnbt_admin_node_exit(true, '删除成功');
     }
@@ -161,7 +161,7 @@ if($egn=='setnodestatus') {
     $enabled = (($_POST['enabled'] ?? 'true') === 'true') ? 'true' : 'false';
     $status = $enabled === 'true' ? 'offline' : 'disabled';
     $ok = $DB->query_prepare("UPDATE `MN_node` SET `enabled`=?, `status`=?, `updated_at`=? WHERE `id`=?", [$enabled, $status, date('Y-m-d H:i:s'), $id]);
-    if ($ok) {
+    if ($ok && $DB->affected() > 0) {
         mnbt_admin_node_log($user, '节点管理', ($enabled === 'true' ? '启用节点 ' : '停用节点 ').$node['node_id'], $DB);
         mnbt_admin_node_exit(true, $enabled === 'true' ? '启用成功' : '停用成功');
     }
