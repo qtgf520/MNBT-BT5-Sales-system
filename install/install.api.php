@@ -121,8 +121,9 @@ switch ($action) {
             $e = 0;
             $error = '';
             for ($i = 0; $i < count($sql); $i++) {
-                if ($sql[$i] == '') continue;
-                if (DB::query($sql[$i])) {
+                $q = trim($sql[$i]);
+                if ($q === '') continue;
+                if (DB::query($q)) {
                     ++$t;
                 } else {
                     ++$e;
@@ -447,8 +448,9 @@ HTML;
                 $e = 0;
                 $error = '';
                 for ($i = 0; $i < count($sql); $i++) {
-                    if ($sql[$i] == '') continue;
-                    if (DB::query($sql[$i])) {
+                    $q = trim($sql[$i]);
+                    if ($q === '') continue;
+                    if (DB::query($q)) {
                         ++$t;
                     } else {
                         ++$e;
