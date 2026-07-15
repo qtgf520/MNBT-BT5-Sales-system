@@ -36,4 +36,5 @@ include("api/deploy.php");
 include("api/database.php");
 include("api/site_stats.php");
 include("api/other.php");
+include("api/panel.php");
 exit('{"code":"请求错误！"}');

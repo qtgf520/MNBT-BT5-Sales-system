@@ -54,11 +54,11 @@
                 <el-icon><FolderOpened /></el-icon>
                 <span>数据管理</span>
               </template>
-              <el-menu-item index="/legacy?u=ftp.php&t=在线文件管理">在线文件</el-menu-item>
+              <el-menu-item index="/ftp">在线文件</el-menu-item>
               <el-menu-item index="mysql-panel" @click.prevent="openExternal('./mysql.php')">
                 SQL 面板
               </el-menu-item>
-              <el-menu-item index="/legacy?u=sqlgl.php&t=SQL数据备份">数据备份</el-menu-item>
+              <el-menu-item index="/backup">数据备份</el-menu-item>
               <el-menu-item index="/settings/mysqlcz">SQL 权限</el-menu-item>
             </el-sub-menu>
 
@@ -67,7 +67,7 @@
                 <el-icon><Monitor /></el-icon>
                 <span>网站管理</span>
               </template>
-              <el-menu-item index="/legacy?u=webgl.php%3Fgn%3Dyjbs&t=一键部署">一键部署</el-menu-item>
+              <el-menu-item index="/deploy">一键部署</el-menu-item>
               <el-menu-item index="/monitor">监控任务</el-menu-item>
               <el-menu-item index="/notice">通知日志</el-menu-item>
             </el-sub-menu>
@@ -162,12 +162,7 @@ const activeMenu = computed(() => {
   if (route.path.startsWith('/settings')) {
     return `/settings/${route.params.gn || 'php'}`
   }
-  if (route.path === '/legacy') {
-    const u = route.query.u || ''
-    if (String(u).includes('ftp')) return '/legacy?u=ftp.php&t=在线文件管理'
-    if (String(u).includes('sqlgl')) return '/legacy?u=sqlgl.php&t=SQL数据备份'
-    if (String(u).includes('webgl')) return '/legacy?u=webgl.php%3Fgn%3Dyjbs&t=一键部署'
-  }
+  if (route.path.startsWith('/monitor-log')) return '/monitor'
   return route.path
 })
 
