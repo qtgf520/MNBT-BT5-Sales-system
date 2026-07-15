@@ -1,11 +1,11 @@
-# 梦奈宝塔主机系统 (MNBT) V1.80
+# 梦奈宝塔主机系统 (MNBT) V1.81
 
-基于宝塔面板 API 的虚拟主机分销管理系统，支持多节点宝塔面板统一管理、用户自主开通主机、一键部署网站程序、在线文件管理、Gzip/缓存配置、URL/资源监控告警、违禁词扫描、**可切换前端主题**等功能。
+基于宝塔面板 API 的虚拟主机分销管理系统，支持多节点宝塔面板统一管理、用户自主开通主机、一键部署网站程序、在线文件管理、Gzip/缓存配置、URL/资源监控告警、违禁词扫描、**可切换前端主题**、**PHP 业务插件**等功能。
 
 ![PHP](https://img.shields.io/badge/PHP-7.4%20~%208.4-777BB4?logo=php&logoColor=white)
 ![MySQL](https://img.shields.io/badge/MySQL-5.6%2B-4479A1?logo=mysql&logoColor=white)
 ![License](https://img.shields.io/badge/license-Commercial-blue)
-![Version](https://img.shields.io/badge/version-1.80-green)
+![Version](https://img.shields.io/badge/version-1.81-green)
 
 ---
 
@@ -23,6 +23,7 @@
 - [MNBT 节点插件](#mnbt-节点插件)
 - [前端模板](#前端模板)
 - [主题开发](#主题开发)
+- [PHP 业务插件](#php-业务插件)
 - [安全说明](#安全说明)
 - [常见问题](#常见问题)
 - [更新日志](#更新日志)
@@ -51,6 +52,7 @@
 - ✅ **完善的操作日志**：所有关键操作可追溯
 - ✅ **可切换前端主题**：用户端 / 管理端独立皮肤，缺页回退 default
 - ✅ **清凉云 SPA 主题**：Vue 3 + Element Plus，白绿圆角现代化用户端
+- ✅ **PHP 业务插件**：`app_plugins/` 目录插件，钩子 / AJAX / 菜单 / 配置（与宝塔节点 Python 插件分离）
 
 ---
 
@@ -67,6 +69,7 @@
 | 一键部署 | 可编程部署引擎，10 种自动化操作 + 模板变量，支持导入/导出 |
 | 订单管理 | 所有支付订单查询与管理 |
 | 系统设置 | 网站公告、支付接口（易支付）、邮箱配置（SMTP）、API 密钥、PHP 版本、建站目录、监控告警、违禁词扫描、**前端模板切换** |
+| **插件管理** | 扫描 `app_plugins/`、安装/启用/禁用/卸载、插件菜单与页面 |
 | 操作日志 | 完整操作日志记录、搜索、分页、清空 |
 | 系统更新 | 远程在线升级 |
 
@@ -237,7 +240,9 @@ chown -R www:www .
 │   │   ├── login.php         # 登录
 │   │   ├── repair.php        # 系统修复
 │   │   ├── setting.php       # 系统设置
+│   │   ├── plugin.php        # 插件管理 AJAX
 │   │   └── log.php           # 操作日志
+│   ├── plugin.php            # 插件管理页 / 插件页面入口
 │   ├── class.php             # bt_api 引用包装器
 │   ├── mail.php              # 邮件发送
 │   └── update.php            # 系统更新
@@ -281,6 +286,7 @@ chown -R www:www .
 │   ├── security.php          # 安全过滤
 │   ├── node.function.php     # MNBT 节点函数库
 │   ├── theme.php             # 主题加载引擎（render / 切换 / 回退）
+│   ├── plugin.php            # PHP 业务插件引擎（钩子 / AJAX / 配置）
 │   ├── database_backup.function.php
 │   ├── BL.php / SQ.php       # 业务辅助
 │   ├── lib/                  # 支付宝 SDK（core.function/submit/notify/md5）
@@ -296,6 +302,10 @@ chown -R www:www .
 │       ├── user/             # 用户控制面板视图
 │       └── admin/            # 管理后台视图
 │
+├── app_plugins/              # PHP 业务插件（非宝塔 Python 插件）
+│   ├── README.md             # 插件开发说明
+│   └── hello_demo/           # 官方示例插件
+│
 ├── api/                      # 外部 API 接口
 │   ├── api.php               # RESTful API 入口
 │   ├── api.class.php         # bt_api 引用包装器
@@ -304,7 +314,7 @@ chown -R www:www .
 ├── install/                  # 安装向导
 │   ├── index.php             # 安装步骤页面
 │   ├── install.api.php       # 安装接口（PHP 版本 >= 7.4.0）
-│   ├── install.sql           # 完整数据库表结构（含监控表/节点表/违禁词扫描表）
+│   ├── install.sql           # 完整数据库表结构（含监控表/节点表/违禁词扫描表/插件表）
 │   └── db.class.php          # 安装专用数据库类
 │
 ├── jk.php                    # 域名/文件监控
@@ -314,7 +324,7 @@ chown -R www:www .
 ├── composer.json             # Composer（vendor-dir: mail/vendor）
 ├── mail/                     # PHPMailer 6.x 邮件库
 ├── filecx/                   # 一键部署程序包
-├── plugins/                  # MNBT 节点插件
+├── plugins/                  # MNBT 节点插件（宝塔侧 Python）
 ├── runtime/                  # 运行时文件
 │   └── logs/                 # PHP 错误日志
 └── imsetes/                  # 静态资源（CSS/JS/字体/图标/CodeMirror/FullCalendar）
@@ -480,6 +490,34 @@ templates/my_theme/
 
 ---
 
+## PHP 业务插件
+
+与宝塔侧 `plugins/mnbt_connector`（Python 节点代理）**分离**。业务扩展放在 `app_plugins/`。
+
+### 快速使用
+
+1. 将插件目录放入 `app_plugins/{slug}/`（需 `plugin.json` + `bootstrap.php`）
+2. 后台 → 系统管理 → **插件管理** → 安装 → 启用
+3. 已有站点执行一次 `update/update_v181_plugin.sql`（或依赖自动建表）
+
+### 文档与示例
+
+| 路径 | 说明 |
+|------|------|
+| [app_plugins/README.md](app_plugins/README.md) | API、钩子、安全约定 |
+| `app_plugins/hello_demo/` | 官方示例（菜单 / 配置 / AJAX / 主机事件） |
+| `MPHX/plugin.php` | 插件引擎 |
+
+### 能力
+
+- 钩子：`boot`、`host.*`、`order.paid`、`cron`、`menu.*`、dashboard widgets
+- 注册：`mnbt_register_ajax` / `page` / `menu` / `widget` / `settings_tab`
+- HTTP：`mnbt_http_get` / `mnbt_http_post`（默认禁内网）
+- 配置：`mnbt_plugin_option_get/set`
+- 页面：`admin/plugin.php?p=slug&page=...`、`user/plugin.php?p=slug&page=...`
+- 内置插件：`webhook_notify`（事件 Webhook）
+
+---
 
 ## 常见问题
 
@@ -582,7 +620,21 @@ backup/
 
 ## 更新日志
 
-### V1.80（当前）
+### V1.81（当前）
+
+**PHP 业务插件系统（P0 + P1）**
+
+- 引擎：`MPHX/plugin.php`，启动挂载于 `common.php`
+- 目录：`app_plugins/{slug}/`（`plugin.json` + `bootstrap.php`）
+- 表：`MN_plugin`、`MN_plugin_option`（升级 SQL：`update/update_v181_plugin.sql`）
+- 后台：系统管理 → 插件管理；侧栏可注入「插件」菜单（管理端 + 用户端）
+- AJAX：`user/ajax.php` / `admin/ajax.php` 优先分发插件 `gn`
+- 钩子：`boot`、`host.created/paused/unpaused/renewed/deleted`、`order.paid`、`cron`、`menu.*`、dashboard widgets
+- P1：`mnbt_http_*`、`mnbt_register_widget`、`mnbt_register_settings_tab`
+- 示例：`hello_demo`、`webhook_notify`（主机/订单 Webhook + HMAC）
+- 文档：[app_plugins/README.md](app_plugins/README.md)
+
+### V1.80
 
 **前端主题系统**
 

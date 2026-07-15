@@ -131,6 +131,10 @@ function mnbt_handle_paid_order($out_trade_no, $trade_status, $money) {
         return ['ok'=>false, 'msg'=>'订单状态更新失败'];
     }
     mnbt_pay_log('订单处理完成 类型'.$ddxx['lx'].' 金额'.$money, '处理成功', $out_trade_no);
+    $order_row = $DB->get_row_prepare("SELECT * FROM MN_dd WHERE ddh=? limit 1", [$out_trade_no]);
+    if (function_exists('mnbt_do_action')) {
+        mnbt_do_action('order.paid', $order_row ?: $ddxx, ['money'=>$money,'source'=>'notify_url']);
+    }
     return ['ok'=>true, 'msg'=>'支付成功'];
 }
 
