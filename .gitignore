@@ -30,6 +30,8 @@ Thumbs.db
 backup/
 *.tar.gz
 *.zip
+backup_*/
+.backup/
 
 # 上传文件
 filecx/uploads/
@@ -45,3 +47,16 @@ admin/_debug_*.php
 # 文档备份
 admin/mnbt/*.docx
 admin/mnbt/*.zip
+
+# 开发文档（KF1/BT5为AI开发档案，不上传Git）
+KF1.md
+KF1_PART2.md
+BT5.md
+DEV_GUIDE.md
+
+# 部署临时文件
+go.php
+_deploy.php
+_deploy_*.php
+_deploy_data.txt
+_trigger.txt

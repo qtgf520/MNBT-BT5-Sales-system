@@ -21,6 +21,24 @@ if($islogins==1 || $egn=='login') {
 		$l_ler_a='C:\Windows\System32\drivers\etc\hosts';
 	}
 }
+// === 权限拦截：限制AJAX操作 ===
+if($islogins==1){
+    $ajaxPermMap = array(
+        'ftpsc'=>'file_manager', 'ftpscxz'=>'file_manager', 'xjwj'=>'file_manager',
+        'phpxg'=>'php_version',
+        'sqldr'=>'database_backup',
+        'scmmfw'=>'password_access', 'tjmmfw'=>'password_access',
+        'xgmrwd'=>'default_document',
+        'setwjt'=>'pseudo_static',
+        'xgpass'=>'change_password',
+        'setyxml'=>'running_directory',
+        'yjbs'=>'one_click_deploy',
+        'xjwjj'=>'file_manager', 'scwj'=>'file_manager',
+    );
+    if(isset($ajaxPermMap[$egn]) && !$Permission->hasPermission($ajaxPermMap[$egn])){
+        exit(json_encode(array('code'=>-1,'msg'=>'权限不足'),JSON_UNESCAPED_UNICODE));
+    }
+}
 if (($islogins==1 || $egn=='login') && function_exists('mnbt_plugin_dispatch_ajax') && mnbt_plugin_dispatch_ajax('user', $egn)) {
 	return;
 }

@@ -61,5 +61,41 @@ include_once(SYSTEM_ROOT."member.php");
 include_once(SYSTEM_ROOT."theme.php");
 include_once(SYSTEM_ROOT."plugin.php");
 require_once(SYSTEM_ROOT."lib/pay.function.php");
+include_once(SYSTEM_ROOT."permission.php"); // 权限管理系统
+// 初始化权限管理
+$Permission = new Permission($DB, isset($yhid) ? $yhid : null);
+// 权限检查函数
+function checkPermission($permission_code) {
+    global $Permission, $yhid;
+    if (!$yhid) return false;
+    return $Permission->hasPermission($permission_code);
+}
+// 模块权限检查函数
+function checkModulePermission($module) {
+    global $Permission, $yhid;
+    if (!$yhid) return false;
+    return $Permission->hasModulePermission($module);
+}
+// 获取用户权限
+function getUserPermissions() {
+    global $Permission, $yhid;
+    if (!$yhid) return [];
+    return $Permission->getUserPermissions();
+}
+// 强制权限检查 - 无权限直接拦截
+function requirePermission($permission_code) {
+    global $Permission, $yhid;
+    if (!$yhid) exit('<script>window.location.href="./login.php";</script>');
+    if (!$Permission->hasPermission($permission_code)) {
+        exit('<!DOCTYPE html><html><head><meta charset="utf-8"><title>权限不足</title>
+        <link rel="stylesheet" href="../imsetes/css/bootstrap.min.css"></head>
+        <body><div class="container pt-5"><div class="alert alert-danger text-center">
+        <h3><i class="mdi mdi-shield-off"></i> 权限不足</h3>
+        <p>您没有访问此功能的权限，请联系管理员开通。</p>
+        <a href="./sy.php" class="btn btn-primary">返回首页</a></div></div></body></html>');
+    }
+}
+// 短辅助函数，用于视图层快速权限检查
+function checkP($perm){global $Permission;return $Permission->hasPermission($perm);}
 mnbt_plugins_boot();
 ?>

@@ -19,5 +19,6 @@ require_once './api/dd.php';
 // ym.php 已删除：域名管理 AJAX 已迁移至 domain_shop 插件（p_domain_*）
 require_once './api/gg.php';
 require_once './api/plugin.php';
+require_once './api/permission.php';
 json_exit('系统指令不存在！');
 ?>

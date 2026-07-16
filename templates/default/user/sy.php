@@ -114,131 +114,115 @@ if (function_exists('mnbt_plugin_render_widgets_html')) {
         <div class="card-body">
           
           
+          <?php
+          $sC=checkP('domain_binding')||checkP('change_password')||checkP('php_version')||checkP('password_access')||checkP('default_document')||checkP('running_directory')||checkP('pseudo_static')||checkP('ssl_management')||checkP('hotlink_protection')||checkP('gzip_config')||checkP('cache_config');
+          $sD=checkP('file_manager')||checkP('database_panel')||checkP('database_backup')||checkP('database_permission');
+          $sS=checkP('one_click_deploy')||checkP('monitor_task')||checkP('notice_log');
+          $first=$sC?'config-sy':($sD?'date-sy':'site-sy');
+          ?>
           <ul class="nav nav-tabs nav-fill">
-            <li class="nav-item">
-              <a class="nav-link active" data-toggle="tab" href="#config-sy" aria-selected="true">基本配置</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" data-toggle="tab" href="#date-sy" aria-selected="true">数据管理</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" data-toggle="tab" href="#site-sy" aria-selected="true">网站管理</a>
+            <?php if($sC): ?><li class="nav-item"><a class="nav-link<?php if($first=='config-sy')echo' active';?>" data-toggle="tab" href="#config-sy">基本配置</a></li><?php endif; ?>
+            <?php if($sD): ?><li class="nav-item"><a class="nav-link<?php if($first=='date-sy')echo' active';?>" data-toggle="tab" href="#date-sy">数据管理</a></li><?php endif; ?>
+            <?php if($sS): ?><li class="nav-item"><a class="nav-link<?php if($first=='site-sy')echo' active';?>" data-toggle="tab" href="#site-sy">网站管理</a></li><?php endif; ?>
           </ul>
           <div class="tab-content">
-            <div class="tab-pane fade show active" id="config-sy" >
+            <?php if($sC): ?><div class="tab-pane fade<?php if($first=="config-sy")echo" show active";?>" id="config-sy" >
                 <div class="row">
-                    <div class="col-6 col-md-3">
+                    <?php if(checkP("domain_binding")): ?><div class="col-6 col-md-3">
                         <a href="#!" class="card text-dark border js-create-tab" data-title="域名绑定" data-url="set.php?gn=url">
                             <i class="mdi mdi-web mdi-36px text-center"></i>
                             <span class="text-center">域名绑定</span>
                         </a>
-                    </div>
-                    <div class="col-6 col-md-3">
+                    </div><?php endif; ?>
+                    <?php if(checkP("php_version")): ?><div class="col-6 col-md-3">
                         <a href="#!" class="card text-dark border phpvs-set">
                             <i class="mdi mdi-xml mdi-36px col text-center"></i>
                             <span class="col text-center">PHP版本</span>
                         </a>
-                    </div>
-                    <div class="col-6 col-md-3">
+                    </div><?php endif; ?>
+                    <?php if(checkP("password_access")): ?><div class="col-6 col-md-3">
                         <a href="#!" class="card text-dark border js-create-tab" data-title="设置密码访问" data-url="set.php?gn=pass">
                             <i class="mdi mdi-guy-fawkes-mask mdi-36px col text-center"></i>
                             <span class="col text-center">密码访问</span>
                         </a>
-                    </div>
-                    <div class="col-6 col-md-3">
+                    </div><?php endif; ?>
+                    <?php if(checkP("default_document")): ?><div class="col-6 col-md-3">
                         <a href="#!" class="card text-dark border js-create-tab" data-title="修改默认文档" data-url="set.php?gn=mrwd">
                             <i class="mdi mdi-home mdi-36px col text-center"></i>
                             <span class="col text-center">默认文档</span>
                         </a>
-                    </div>
-                    <div class="col-6 col-md-3">
+                    </div><?php endif; ?>
+                    <?php if(checkP("running_directory")): ?><div class="col-6 col-md-3">
                         <a href="#!" class="card text-dark border js-create-tab" data-title="设置运行目录" data-url="set.php?gn=yxml">
                             <i class="mdi mdi-television-guide mdi-36px col text-center"></i>
                             <span class="col text-center">运行目录</span>
                         </a>
-                    </div>
-                    <div class="col-6 col-md-3">
+                    </div><?php endif; ?>
+                    <?php if(checkP("pseudo_static")): ?><div class="col-6 col-md-3">
                         <a href="#!" class="card text-dark border js-create-tab" data-title="设置伪静态" data-url="set.php?gn=wjt">
                             <i class="mdi mdi-link-variant mdi-36px col text-center"></i>
                             <span class="col text-center">伪静态</span>
                         </a>
-                    </div>
-                    <div class="col-6 col-md-3">
+                    </div><?php endif; ?>
+                    <?php if(checkP("ssl_management")): ?><div class="col-6 col-md-3">
                         <a href="#!" class="card text-dark border js-create-tab" data-title="SSL配置" data-url="set.php?gn=ssl">
                             <i class="mdi mdi-key mdi-36px col text-center"></i>
                             <span class="col text-center">SSL配置</span>
                         </a>
-                    </div>
-                    <div class="col-6 col-md-3">
+                    </div><?php endif; ?>
+                    <?php if(checkP("hotlink_protection")): ?><div class="col-6 col-md-3">
                         <a href="#!" class="card text-dark border js-create-tab" data-title="防盗链配置" data-url="set.php?gn=fdl">
                             <i class="mdi mdi-access-point-network mdi-36px col text-center"></i>
                             <span class="col text-center">防盗链</span>
                         </a>
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <a href="#!" class="card text-dark border js-create-tab" data-title="Gzip配置" data-url="set.php?gn=gzip">
-                            <i class="mdi mdi-zip-box-outline mdi-36px col text-center"></i>
-                            <span class="col text-center">Gzip配置</span>
+                    </div><?php endif; ?>
+                    <?php if(checkP("change_password")): ?><div class="col-6 col-md-3">
+                        <a href="#!" class="card text-dark border js-create-tab" data-title="修改密码" data-url="set.php?gn=xgpass">
+                            <i class="mdi mdi-progress-wrench mdi-36px col text-center"></i>
+                            <span class="col text-center">修改密码</span>
                         </a>
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <a href="#!" class="card text-dark border js-create-tab" data-title="缓存配置" data-url="set.php?gn=cache">
-                            <i class="mdi mdi-cached mdi-36px col text-center"></i>
-                            <span class="col text-center">缓存配置</span>
-                        </a>
-                    </div>
+                    </div><?php endif; ?>
                 </div>
             </div>
-            <div class="tab-pane fade" id="date-sy" >
+            <?php endif; ?><?php if($sD): ?><div class="tab-pane fade<?php if($first=="date-sy")echo" show active";?>" id="date-sy" >
                 <div class="row">
-                    <div class="col-6 col-md-3">
+                    <?php if(checkP("file_manager")): ?><div class="col-6 col-md-3">
                         <a href="#!" class="card text-dark border js-create-tab" data-title="在线文件管理" data-url="ftp.php">
                             <i class="mdi mdi-folder-open mdi-36px col text-center"></i>
                             <span class="col text-center">在线文件管理</span>
                         </a>
-                    </div>
-                    <div class="col-6 col-md-3">
+                    </div><?php endif; ?>
+                    <?php if(checkP("database_panel")): ?><div class="col-6 col-md-3">
                         <a href="mysql.php" target="_blank" class="card text-dark border">
                             <i class="mdi mdi-database mdi-36px col text-center"></i>
                             <span class="col text-center">数据库管理面板</span>
                         </a>
-                    </div>
-                    <div class="col-6 col-md-3">
+                    </div><?php endif; ?>
+                    <?php if(checkP("database_backup")): ?><div class="col-6 col-md-3">
                         <a href="#!" class="card text-dark border js-create-tab" data-title="数据库备份管理" data-url="sqlgl.php">
                             <i class="mdi mdi-database-plus mdi-36px col text-center"></i>
                             <span class="col text-center">数据库备份管理</span>
                         </a>
-                    </div>
-                    <div class="col-6 col-md-3">
+                    </div><?php endif; ?>
+                    <?php if(checkP("database_permission")): ?><div class="col-6 col-md-3">
                         <a href="#!" class="card text-dark border js-create-tab" data-title="数据库权限修改" data-url="set.php?gn=mysqlcz">
                             <i class="mdi mdi-database-lock mdi-36px col text-center"></i>
                             <span class="col text-center">数据库权限修改</span>
                         </a>
-                    </div>
+                    </div><?php endif; ?>
                 </div>
             </div>
-            <div class="tab-pane fade" id="site-sy" >
+            <?php endif; ?><?php if($sS): ?><div class="tab-pane fade<?php if($first=="site-sy")echo" show active";?>" id="site-sy" >
                 <div class="row">
-                    <div class="col-6 col-md-3">
+                    <?php if(checkP("one_click_deploy")): ?><div class="col-6 col-md-3">
                         <a href="#!" class="card text-dark border js-create-tab" data-title="一键部署" data-url="webgl.php?gn=yjbs">
                             <i class="mdi mdi-webpack mdi-36px col text-center"></i>
                             <span class="col text-center">一键部署</span>
                         </a>
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <a href="#!" class="card text-dark border js-create-tab" data-title="监控任务" data-url="monitor.php">
-                            <i class="mdi mdi-monitor-dashboard mdi-36px col text-center"></i>
-                            <span class="col text-center">监控任务</span>
-                        </a>
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <a href="#!" class="card text-dark border js-create-tab" data-title="通知日志" data-url="notice.php">
-                            <i class="mdi mdi-bell-ring mdi-36px col text-center"></i>
-                            <span class="col text-center">通知日志</span>
-                        </a>
-                    </div>
+                    </div><?php endif; ?>
                 </div>
             </div>
+            <?php endif; ?>
             
           </div>
           
@@ -283,13 +267,14 @@ if (function_exists('mnbt_plugin_render_widgets_html')) {
     </div>
   </div>
 
+<?php if(checkP("ftp_service")){ ?>
 <div class="col-lg-12 col-md-4 ftpxx">
   <div class="card">
     <div class="card-header">
       <h4>FTP信息</h4>
       <ul class="card-actions">
       </ul>
-    <a class="btn btn-purple btn-xs js-create-tab" data-title="在线文件管理" data-url="ftp.php">在线文件管理器</a>
+    <?php if(checkP("file_manager")){ ?><a class="btn btn-purple btn-xs js-create-tab" data-title="在线文件管理" data-url="ftp.php">在线文件管理器</a><?php } ?>
     </div>
     <div class="card-body">
       <div class="table-responsive">
@@ -318,13 +303,15 @@ if (function_exists('mnbt_plugin_render_widgets_html')) {
     </div>
   </div>
 </div>
+<?php } ?>
+<?php if(checkP("database_service")){ ?>
 <div class="col-lg-12 col-md-4 basxx">
 <div class="card">
   <div class="card-header">
     <h4>数据库信息</h4>
     <ul class="card-actions">
     </ul>
-    <a href="mysql.php" target="_blank" class="btn btn-info btn-xs">phpMyAdmin</a>
+    <?php if(checkP("database_panel")){ ?><a href="mysql.php" target="_blank" class="btn btn-info btn-xs">phpMyAdmin</a><?php } ?>
   </div>
   <div class="card-body">
     <div class="table-responsive">
