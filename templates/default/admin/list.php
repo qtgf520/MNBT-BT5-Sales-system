@@ -874,6 +874,7 @@ function btnGroup ()
     let html =
         '<a href="#!" class="btn btn-xs btn-default edit-btn" title="编辑" data-toggle="tooltip"><i class="mdi mdi-pencil"></i></a>' +
         '<a href="#!" class="btn btn-xs btn-default login-kzmb" title="登陆控制面板" data-toggle="tooltip"><i class="mdi mdi-security-network"></i></a>' +
+        '<a href="#!" class="btn btn-xs btn-default perm-btn" title="权限设置" data-toggle="tooltip"><i class="mdi mdi-shield-edit"></i></a>' +
         '<a href="#!" class="btn btn-xs btn-default del-btn" title="删除" data-toggle="tooltip"><i class="mdi mdi-window-close"></i></a>';
     return html;
 }

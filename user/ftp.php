@@ -10,6 +10,7 @@
 @header('Content-Type: text/html; charset=UTF-8');
 include("../MPHX/common.php");
 mnbt_user_require_login();
+requirePermission("file_manager");
 set_time_limit(0);
 ignore_user_abort();
 ini_set('memory_limit', '-1');
