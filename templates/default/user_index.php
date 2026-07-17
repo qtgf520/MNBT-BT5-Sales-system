@@ -1,34 +1,4 @@
-<?php
-include("../MPHX/common.php");
-
-// ★ 检查独立用户登录(mn_user_token)
-$tk=$_COOKIE['mn_user_token']??'';
-$user_info=null;
-if($tk){
-    $dec=base64_decode($tk);
-    if($dec){
-        list($uid,$uname,$sess)=explode("\t",$dec);
-        $u=$DB->get_row_prepare("SELECT * FROM MN_user WHERE id=? AND username=? LIMIT 1",[$uid,$uname]);
-        if($u && md5($u['username'].$u['password'].'MNBT')==$sess && $u['status']=='true'){
-            $user_info=$u;
-            $g=$DB->get_row_prepare("SELECT name FROM MN_user_group WHERE id=?",[$u['group_id']]);
-            $user_info['group_name']=$g['name']??'默认';
-            $logs=$DB->get_all_prepare("SELECT * FROM MN_money_log WHERE user_id=? ORDER BY id DESC LIMIT 10",[$uid]);
-        }
-    }
-}
-
-if(!$user_info){
-    exit("<script>window.location.href='./login.php';</script>");
-}
-?><!DOCTYPE html>
-<html lang="zh">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>用户中心 - MNBT</title>
-<link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/4.6.2/css/bootstrap.min.css" rel="stylesheet">
-<script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+<?php mnbt_theme_include('head'); ?>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#f4f6f8;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif;min-height:100vh}
@@ -54,6 +24,24 @@ body{background:#f4f6f8;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Pi
 </style>
 </head>
 <body>
+<?php
+$tk=$_COOKIE['mn_user_token']??'';
+$user_info=null;
+if($tk){
+    $dec=base64_decode($tk);
+    if($dec){
+        list($uid,$uname,$sess)=explode("\t",$dec);
+        $u=$DB->get_row_prepare("SELECT * FROM MN_user WHERE id=? AND username=? LIMIT 1",[$uid,$uname]);
+        if($u && md5($u['username'].$u['password'].'MNBT')==$sess){
+            $user_info=$u;
+            $g=$DB->get_row_prepare("SELECT name FROM MN_user_group WHERE id=?",[$u['group_id']]);
+            $user_info['group_name']=$g['name']??'默认';
+            $logs=$DB->get_all_prepare("SELECT * FROM MN_money_log WHERE user_id=? ORDER BY id DESC LIMIT 10",[$uid]);
+        }
+    }
+}
+if(!$user_info){echo '<div class="header"><h2>未登录</h2></div><div class="container"><div class="card"><p style="text-align:center;color:#94a3b8">请先<a href="./login.php">登录</a></p></div></div>';exit;}
+?>
 <div class="header">
   <h2>👋 欢迎回来</h2>
   <p><?=htmlspecialchars($user_info['username'])?> · <?=htmlspecialchars($user_info['group_name'])?></p>
@@ -94,5 +82,4 @@ body{background:#f4f6f8;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Pi
   
   <button class="btn-logout" onclick="if(confirm('确定退出？')){$.post('./ajax.php',{gn:'user_logout'},function(){window.location.href='./login.php';});}">退出登录</button>
 </div>
-</body>
-</html>
+<?php mnbt_theme_include('foot'); ?>

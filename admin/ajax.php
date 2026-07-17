@@ -20,5 +20,6 @@ require_once './api/ym.php';
 require_once './api/gg.php';
 require_once './api/plugin.php';
 require_once './api/permission.php';
+require_once './api/user.php';
 json_exit('系统指令不存在！');
 ?>

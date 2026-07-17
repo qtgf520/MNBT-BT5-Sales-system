@@ -87,6 +87,12 @@
                 <li> <a class="multitabs" href="node.php?tab=scan">违禁词扫描</a> </li>
               </ul>
             </li>
+            <li class="nav-item nav-item-has-subnav"> <a href="javascript:void(0)"> <i class="mdi mdi-account-multiple"></i> <span>用户管理</span> </a>
+              <ul class="nav nav-subnav">
+                <li> <a class="multitabs" href="list.php?gn=user">用户列表</a> </li>
+              </ul>
+            </li>
+            <li class="nav-item nav-item-has-subnav">
             <li class="nav-item nav-item-has-subnav"> <a href="javascript:void(0)"> <i class="mdi mdi-locker-multiple"></i> <span>主机管理</span> </a>
               <ul class="nav nav-subnav">
                 <li> <a class="multitabs" href="list.php?gn=zj">主机列表</a> </li>

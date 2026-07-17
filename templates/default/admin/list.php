@@ -2129,4 +2129,160 @@ $('#tb_log').bootstrapTable({
     }
 });
 </script>
+<?php }elseif($set=="user"){?>
+<div class="container-fluid p-t-15">
+  <div class="row">
+    <div class="col-lg-12">
+      <div class="card">
+        <header class="card-header"><div class="card-title">用户列表</div></header>
+        <div class="card-body">
+          <div id="toolbar" class="toolbar-btn-action">
+            <button class="btn btn-primary" onclick="showAddUser()"><i class="mdi mdi-plus"></i> 新增用户</button>
+            <input type="text" class="form-control" style="width:200px;display:inline-block" id="search_user" placeholder="搜索用户名">
+            <button class="btn btn-primary" onclick="$("#tb_user").bootstrapTable("refreshOptions",{pageNumber:1})"><i class="mdi mdi-magnify"></i>搜索</button>
+          </div>
+          <table id="tb_user"></table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="userEditModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header"><h6>编辑用户</h6><button type="button" class="close" data-dismiss="modal">&times;</button></div>
+      <div class="modal-body">
+        <input type="hidden" id="edit_uid">
+        <div class="form-group"><label>用户名</label><input class="form-control" id="edit_username" readonly></div>
+        <div class="form-group"><label>邮箱</label><input class="form-control" id="edit_email"></div>
+        <div class="form-group"><label>余额</label><input class="form-control" id="edit_money" step="0.01"></div>
+        <div class="form-group"><label>积分</label><input class="form-control" id="edit_score"></div>
+        <div class="form-group"><label>用户组</label><select class="form-control" id="edit_group"></select></div>
+        <div class="form-group"><label>状态</label><select class="form-control" id="edit_status"><option value="true">正常</option><option value="false">禁用</option></select></div>
+        <div class="form-group"><label>新密码(留空不修改)</label><input class="form-control" id="edit_password" type="password"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-default" data-dismiss="modal">关闭</button>
+        <button class="btn btn-primary" onclick="saveUser()">保存</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="userAddModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header"><h6>新增用户</h6><button type="button" class="close" data-dismiss="modal">&times;</button></div>
+      <div class="modal-body">
+        <div class="form-group"><label>用户名</label><input class="form-control" id="add_username"></div>
+        <div class="form-group"><label>密码</label><input class="form-control" id="add_password" type="password"></div>
+        <div class="form-group"><label>邮箱</label><input class="form-control" id="add_email"></div>
+        <div class="form-group"><label>用户组</label><select class="form-control" id="add_group"></select></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-default" data-dismiss="modal">关闭</button>
+        <button class="btn btn-primary" onclick="addUser()">添加</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+$("#tb_user").bootstrapTable({
+    classes: "table table-bordered table-hover table-striped",
+    url: "./ajax.php",
+    method: "post",
+    contentType: "application/x-www-form-urlencoded",
+    uniqueId: "id",
+    sortName: "id",
+    sortOrder: "desc",
+    pagination: true,
+    sidePagination: "server",
+    pageSize: 15,
+    pageList: [10,25,50,100],
+    queryParams: function(p) {
+        return { gn: "list_user", where: $("#search_user").val(), limit: p.limit, offset: p.offset, page: (p.offset/p.limit)+1, sort: p.sort, sortOrder: p.order };
+    },
+    columns: [{
+        checkbox: true
+    },{
+        field: "id", title: "ID", sortable: true
+    },{
+        field: "username", title: "用户名", sortable: true
+    },{
+        field: "email", title: "邮箱"
+    },{
+        field: "money", title: "余额", sortable: true,
+        formatter:function(v){return "¥"+parseFloat(v||0).toFixed(2);}
+    },{
+        field: "group_name", title: "用户组"
+    },{
+        field: "status", title: "状态",
+        formatter:function(v){return v=="true"?"<span class=\"badge badge-success\">启用</span>":"<span class=\"badge badge-danger\">禁用</span>";}
+    },{
+        field: "reg_date", title: "注册时间"
+    },{
+        field: "login_date", title: "最后登录"
+    },{
+        field: "operate", title: "操作",
+        formatter: function(v,row){
+            return "<a href=\"#!\" class=\"btn btn-xs btn-primary\" onclick=\"editUser("+row.id+")\" title=\"编辑\"><i class=\"mdi mdi-pencil\"></i></a> <a href=\"#!\" class=\"btn btn-xs btn-danger\" onclick=\"deleteUser("+row.id+")\" title=\"删除\"><i class=\"mdi mdi-window-close\"></i></a>";
+        }
+    }]
+});
+function editUser(uid) {
+    $.post("./ajax.php",{gn:"user_detail",uid:uid},function(d){
+        var r=JSON.parse(d); if(r.code!=0){msalert(4,r.msg);return;}
+        var u=r.data; $("#edit_uid").val(u.id); $("#edit_username").val(u.username);
+        $("#edit_email").val(u.email); $("#edit_money").val(u.money); $("#edit_score").val(u.score);
+        $("#edit_status").val(u.status); $("#edit_password").val("");
+        $.post("./ajax.php",{gn:"user_group_list"},function(gd){
+            var g=JSON.parse(gd); var opts="";
+            if(g.data) $.each(g.data,function(i,v){opts+="<option value=\""+v.id+"\""+(v.id==u.group_id?" selected":"")+">"+v.name+"</option>";});
+            $("#edit_group").html(opts);
+        });
+        $("#userEditModal").modal();
+    });
+}
+function saveUser() {
+    var d={gn:"user_update",uid:$("#edit_uid").val(),money:$("#edit_money").val(),score:$("#edit_score").val(),group_id:$("#edit_group").val(),status:$("#edit_status").val(),password:$("#edit_password").val()};
+    msloading("保存中...");
+    $.post("./ajax.php",d,function(rr){
+        var r=JSON.parse(rr); msloadingde();
+        if(r.code=="修改成功"){msalert(1,"修改成功",2000);$("#userEditModal").modal("hide");$("#tb_user").bootstrapTable("refresh");}
+        else{msalert(4,r.code,3000);}
+    });
+}
+function deleteUser(uid) {
+    if(!confirm("确定删除该用户？")) return;
+    msloading("删除中...");
+    $.post("./ajax.php",{gn:"user_delete",uid:uid},function(rr){
+        var r=JSON.parse(rr); msloadingde();
+        if(r.code=="删除成功"){msalert(1,"删除成功",2000);$("#tb_user").bootstrapTable("refresh");}
+        else{msalert(4,r.code,3000);}
+    });
+}
+function showAddUser() {
+    $.post("./ajax.php",{gn:"user_group_list"},function(gd){
+        var g=JSON.parse(gd); var opts="";
+        if(g.data) $.each(g.data,function(i,v){opts+="<option value=\""+v.id+"\">"+v.name+"</option>";});
+        $("#add_group").html(opts);
+    });
+    $("#add_username").val(""); $("#add_password").val(""); $("#add_email").val("");
+    $("#userAddModal").modal();
+}
+function addUser() {
+    var u=$("#add_username").val().trim(); var p=$("#add_password").val();
+    if(u.length<3||p.length<6){msalert(3,"用户名至少3位，密码至少6位",3000);return;}
+    msloading("添加中...");
+    $.post("./ajax.php",{gn:"user_add",username:u,password:p,email:$("#add_email").val(),group_id:$("#add_group").val()},function(rr){
+        var r=JSON.parse(rr); msloadingde();
+        if(r.code=="添加成功"){msalert(1,"添加成功",2000);$("#userAddModal").modal("hide");$("#tb_user").bootstrapTable("refresh");}
+        else{msalert(4,r.code,3000);}
+    });
+}
+</script>
+</body>
+</html>
 <?php }?>

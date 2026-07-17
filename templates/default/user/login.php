@@ -144,12 +144,20 @@ body.login-page {
         <img alt="MNBT" src="<?=mnbt_asset_url('upload_logo/logo.login.png')?>?<?=$conf['auther']?>">
       </a>
       <p class="title"><?= htmlspecialchars($conf['name'] ?? '控制面板', ENT_QUOTES, 'UTF-8') ?></p>
-      <p class="sub">用户登录</p>
+      <p class="sub" id="loginTitle">用户登录</p>
     </div>
-    <form action="#!" method="post" class="login-form" onsubmit="return false;">
+    <form action="#!" method="post" class="login-form" onsubmit="return false;" id="loginForm">
       <div class="form-group has-feedback">
         <span class="mdi mdi-account" aria-hidden="true"></span>
         <input type="text" class="form-control" id="username" placeholder="用户名 / 账号" autocomplete="username">
+      </div>
+      <div id="emailGroup" class="form-group has-feedback" style="display:none">
+        <span class="mdi mdi-email" aria-hidden="true"></span>
+        <input type="email" class="form-control" id="regEmail" placeholder="邮箱(选填)" autocomplete="email">
+      </div>
+      <div id="password2Group" class="form-group has-feedback" style="display:none">
+        <span class="mdi mdi-lock" aria-hidden="true"></span>
+        <input type="password" class="form-control" id="regPassword2" placeholder="确认密码">
       </div>
       <div class="form-group has-feedback">
         <span class="mdi mdi-lock" aria-hidden="true"></span>
@@ -167,7 +175,10 @@ body.login-page {
       </div>
 <?php } ?>
       <div class="form-group mb-0">
-        <button class="btn btn-login" type="button" onclick="chkre()">登 录</button>
+        <button class="btn btn-login" type="button" onclick="chkre()" id="loginBtn">登 录</button>
+      </div>
+      <div class="text-center mt-2">
+        <a href="javascript:void(0)" id="toggleMode" onclick="toggleLoginReg()" class="text-info" style="font-size:13px">没有账号？去注册</a>
       </div>
     </form>
     <p class="login-footer"><?= htmlspecialchars($conf['hxp'] ?? '', ENT_QUOTES, 'UTF-8') ?></p>
@@ -184,28 +195,43 @@ function chkre() {
   if (userq == "" || passq == "" || codeq == "") {
     msalert(3, "请将表单填写完整", 2000);
   } else {
+    if(isRegMode){
+        // 注册模式
+        var e=$('#regEmail').val().trim();
+        var p2=$('#regPassword2').val();
+        if(passq.length<6){msalert(3,'密码至少6位',3000);return;}
+        if(passq!=p2){msalert(3,'两次密码不一致',3000);return;}
+        msloading('注册中...');
+        $.post('./login.php',{action:'user_register',username:userq,email:e,password:passq},function(d){
+            var r=JSON.parse(d);
+            msloadingde();
+            if(r.code=='注册成功'){msalert(1,'注册成功！请登录',2000);toggleLoginReg();}
+            else{msalert(4,r.code,3000);}
+        });
+        return;
+    }
+    // 登录模式 - 先试独立用户登录
     msloading('正在登录，请稍后...');
-    var data = {};
-    data["gn"] = "login";
-    data["user"] = userq;
-    data["pass"] = passq;
-    data["code"] = codeq;
-    $.post('./ajax.php', data, function (date) {
+    $.post('./login.php', {action:'user_login', username:userq, password:passq}, function(date) {
       var jsoe = JSON.parse(date);
-      var qk = jsoe.code;
-      if (qk == '登陆成功') {
+      if (jsoe.code == '登陆成功') {
         msalert(1, "登录成功，正在跳转…", 2000);
         window.location.href = "./index.php";
         msloadingde();
-<?php if ($conf['yzme'] == 'true') {
-  echo "        captcha.src='./code.php?r='+Math.random();\n";
-} ?>
       } else {
-        msalert(4, qk, 4000);
-        msloadingde();
-<?php if ($conf['yzme'] == 'true') {
-  echo "        captcha.src='./code.php?r='+Math.random();\n";
-} ?>
+        // 失败则试旧版主机登录
+        $.post('./ajax.php', {gn:'login', user:userq, pass:passq, code:codeq}, function(date2) {
+          var jsoe2 = JSON.parse(date2);
+          var qk2 = jsoe2.code;
+          if (qk2 == '登陆成功') {
+            msalert(1, "登录成功，正在跳转…", 2000);
+            window.location.href = "./index.php";
+            msloadingde();
+          } else {
+            msalert(4, qk2, 4000);
+            msloadingde();
+          }
+        });
       }
     });
   }
@@ -213,6 +239,24 @@ function chkre() {
 document.addEventListener('keydown', function (e) {
   if (e.key === 'Enter') chkre();
 });
+
+var isRegMode = false;
+function toggleLoginReg() {
+    isRegMode = !isRegMode;
+    if(isRegMode){
+        $('#loginTitle').text('用户注册');
+        $('#loginBtn').text('注 册');
+        $('#emailGroup').show();
+        $('#password2Group').show();
+        $('#toggleMode').text('已有账号？去登录');
+    }else{
+        $('#loginTitle').text('用户登录');
+        $('#loginBtn').text('登 录');
+        $('#emailGroup').hide();
+        $('#password2Group').hide();
+        $('#toggleMode').text('没有账号？去注册');
+    }
+}
 </script>
 </body>
 </html>
