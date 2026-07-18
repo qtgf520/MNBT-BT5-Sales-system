@@ -16,6 +16,9 @@ if (!defined('IN_CRONLITE')) {
 
 require_once __DIR__ . '/lib/hosting.php';
 
+// 自动升级表结构（追加新周期价格字段等）
+hosting_upgrade_schema();
+
 mnbt_plugin_register('hosting_shop', [
 	'name' => '主机售卖',
 	'description' => '虚拟主机套餐售卖、自动开通、资产订单管理',
@@ -144,20 +147,28 @@ mnbt_register_route('POST', '/shop/api/create_order', function ($params, $ctx) {
 	if (!$plan || $plan['status'] !== 'active') {
 		hosting_json('套餐不存在或已下架');
 	}
-	if (!in_array($period, ['month', 'year'], true)) {
+	$periods = hosting_periods();
+	if (!isset($periods[$period])) {
 		hosting_json('请选择有效的购买周期');
 	}
-	$amount_cents = $period === 'year' ? (int)$plan['price_year_cents'] : (int)$plan['price_month_cents'];
-	if ($amount_cents <= 0) {
-		hosting_json('该套餐此周期不可购买');
+	$enabled = hosting_plan_enabled_periods($plan);
+	if (!in_array($period, $enabled, true)) {
+		hosting_json('该套餐不支持此购买周期');
+	}
+	$price_field = hosting_period_price_field($period);
+	$amount_cents = $price_field ? (int)($plan[$price_field] ?? 0) : 0;
+	if ($amount_cents < 0) {
+		hosting_json('该套餐此周期价格异常');
 	}
 	// 校验节点
 	if ($node === '' || !hosting_node_get($node)) {
 		hosting_json('请选择有效的开通节点');
 	}
-	// 校验支付方式
-	if ($type === '' || !function_exists('mnbt_pay_parse_type') || !mnbt_pay_parse_type($type)) {
-		hosting_json('请选择有效的支付方式');
+	// 非 0 元订单校验支付方式；0 元订单无需选择支付方式
+	if ($amount_cents > 0) {
+		if ($type === '' || !function_exists('mnbt_pay_parse_type') || !mnbt_pay_parse_type($type)) {
+			hosting_json('请选择有效的支付方式');
+		}
 	}
 
 	// 创建 hosting 订单
@@ -166,6 +177,17 @@ mnbt_register_route('POST', '/shop/api/create_order', function ($params, $ctx) {
 		hosting_json($create['msg'] ?? '创建订单失败');
 	}
 	$order_no = $create['order_no'];
+	$hosting_order_id = (int)$create['order_id'];
+
+	// 0 元免费套餐：直接标记 paid 并开通，无需创建 MN_dd 和调支付网关
+	if ($amount_cents === 0) {
+		hosting_order_set_status($hosting_order_id, 'paid', '免费套餐直接开通');
+		$open = hosting_open_host($hosting_order_id);
+		if (!$open['ok']) {
+			hosting_json('开通失败：' . ($open['msg'] ?? '未知错误'));
+		}
+		hosting_json('开通成功', ['redirect' => hosting_url('shop/assets')]);
+	}
 
 	// 创建 MN_dd 记录（支付系统订单）
 	$amount_yuan = (string)round($amount_cents / 100, 2);
@@ -176,7 +198,7 @@ mnbt_register_route('POST', '/shop/api/create_order', function ($params, $ctx) {
 		'node' => $node,
 		'amount' => $amount_cents,
 		'username' => $user['username'],
-		'order_id' => $create['order_id'],
+		'order_id' => $hosting_order_id,
 	], 256);
 	$ip = $_SERVER["REMOTE_ADDR"] ?? '127.0.0.1';
 
@@ -188,14 +210,15 @@ mnbt_register_route('POST', '/shop/api/create_order', function ($params, $ctx) {
 	);
 	if (!$ok) {
 		// 回滚 hosting 订单状态
-		hosting_order_set_status((int)$create['order_id'], 'cancelled', '支付订单创建失败');
+		hosting_order_set_status($hosting_order_id, 'cancelled', '支付订单创建失败');
 		hosting_json('支付订单创建失败，请稍后重试');
 	}
 
 	// 分发到支付插件
+	$period_label = $periods[$period]['label'];
 	$order_context = [
 		'out_trade_no' => $order_no,
-		'name' => '购买主机：' . $plan['name'] . '（' . ($period === 'year' ? '年付' : '月付') . '）',
+		'name' => '购买主机：' . $plan['name'] . '（' . $period_label . '）',
 		'money' => $amount_yuan,
 		'type' => $type,
 		'siteurl' => $siteurl,
@@ -204,7 +227,7 @@ mnbt_register_route('POST', '/shop/api/create_order', function ($params, $ctx) {
 
 	$html = mnbt_pay_dispatch_gateway($type, $order_context);
 	if ($html === false) {
-		hosting_order_set_status((int)$create['order_id'], 'cancelled', '支付方式不可用');
+		hosting_order_set_status($hosting_order_id, 'cancelled', '支付方式不可用');
 		hosting_json('支付方式不可用，请检查支付插件是否已启用');
 	}
 

@@ -28,11 +28,17 @@ ob_start();
           <li><span>域名绑定</span><b><?= (int)$plan['spec_domain'] ?> 个</b></li>
         </ul>
         <div class="hs-plan-price">
-          <?php if ((int)$plan['price_month_cents'] > 0): ?>
-            <div class="hs-price-item"><span class="hs-price-label">月付</span><span class="hs-price-value">¥<?= hosting_format_cents($plan['price_month_cents']) ?></span></div>
-          <?php endif; ?>
-          <?php if ((int)$plan['price_year_cents'] > 0): ?>
-            <div class="hs-price-item"><span class="hs-price-label">年付</span><span class="hs-price-value">¥<?= hosting_format_cents($plan['price_year_cents']) ?></span></div>
+          <?php
+            $enabled = hosting_plan_enabled_periods($plan);
+            foreach ($enabled as $p):
+              $cfg = hosting_periods()[$p];
+              $field = hosting_period_price_field($p);
+              $price = (int)($plan[$field] ?? 0);
+          ?>
+            <div class="hs-price-item"><span class="hs-price-label"><?= htmlspecialchars($cfg['label']) ?></span><span class="hs-price-value">¥<?= hosting_format_cents($price) ?></span></div>
+          <?php endforeach; ?>
+          <?php if ($enabled === []): ?>
+            <span style="color:#999;font-size:12px;">暂无可购买周期</span>
           <?php endif; ?>
         </div>
         <div class="hs-plan-buy"><a class="layui-btn" href="<?= hosting_url('shop/order/'.(int)$plan['id']) ?>">立即购买</a></div>

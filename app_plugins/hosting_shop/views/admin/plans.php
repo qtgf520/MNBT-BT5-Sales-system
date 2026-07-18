@@ -47,7 +47,7 @@ mnbt_admin_include('head');
 								<th>类型</th>
 								<th>网页/数据库/流量</th>
 								<th>域名数</th>
-								<th>月付/年付</th>
+								<th>价格（启用周期）</th>
 								<th>状态</th>
 								<th>排序</th>
 								<th style="width:180px">操作</th>
@@ -55,13 +55,22 @@ mnbt_admin_include('head');
 						</thead>
 						<tbody>
 							<?php foreach ($plans as $p): ?>
+								<?php $enabled = hosting_plan_enabled_periods($p); ?>
 								<tr>
 									<td><?= (int)$p['id'] ?></td>
 									<td><?= htmlspecialchars($p['name'], ENT_QUOTES) ?></td>
 									<td><?= (int)$p['spec_type'] === 1 ? 'CDN' : '主机' ?></td>
 									<td><?= (int)$p['spec_web'] ?>MB / <?= (int)$p['spec_sql'] ?>MB / <?= (int)$p['spec_flow'] > 0 ? ((int)$p['spec_flow'] . 'GB') : '不限' ?></td>
 									<td><?= (int)$p['spec_domain'] ?></td>
-									<td>¥<?= htmlspecialchars(hosting_format_cents($p['price_month_cents'])) ?> / ¥<?= htmlspecialchars(hosting_format_cents($p['price_year_cents'])) ?></td>
+									<td>
+										<?php foreach ($enabled as $periodKey): ?>
+											<?php $cfg = hosting_periods()[$periodKey]; $field = hosting_period_price_field($periodKey); $price = (int)($p[$field] ?? 0); ?>
+											<span class="badge badge-light" style="margin-right:4px;"><?= htmlspecialchars($cfg['label']) ?> ¥<?= htmlspecialchars(hosting_format_cents($price)) ?></span>
+										<?php endforeach; ?>
+										<?php if ($enabled === []): ?>
+											<span class="text-muted">未启用周期</span>
+										<?php endif; ?>
+									</td>
 									<td>
 										<?php if ($p['status'] === 'active'): ?>
 											<span class="badge badge-success">上架</span>

@@ -25,14 +25,17 @@ ob_start();
       <div class="layui-form-item">
         <label class="layui-form-label">购买周期</label>
         <div class="layui-input-block hs-form-choices" style="padding-top:8px;">
-          <?php if ((int)$plan['price_month_cents'] > 0): ?>
-            <label class="hs-choice"><input type="radio" name="period" value="month" <?= (int)$plan['price_year_cents']<=0?'checked':'' ?>> 月付 ¥<?= hosting_format_cents($plan['price_month_cents']) ?></label>
-          <?php endif; ?>
-          <?php if ((int)$plan['price_year_cents'] > 0): ?>
-            <label class="hs-choice"><input type="radio" name="period" value="year" <?= (int)$plan['price_month_cents']<=0?'checked':'' ?>> 年付 ¥<?= hosting_format_cents($plan['price_year_cents']) ?></label>
-          <?php endif; ?>
-          <?php if ((int)$plan['price_month_cents'] <= 0 && (int)$plan['price_year_cents'] <= 0): ?>
-            <span style="color:#999;">该套餐未设置价格</span>
+          <?php
+            $enabled = hosting_plan_enabled_periods($plan);
+            foreach ($enabled as $p):
+              $cfg = hosting_periods()[$p];
+              $field = hosting_period_price_field($p);
+              $price = (int)($plan[$field] ?? 0);
+          ?>
+            <label class="hs-choice"><input type="radio" name="period" value="<?= htmlspecialchars($p, ENT_QUOTES) ?>"> <?= htmlspecialchars($cfg['label']) ?> ¥<?= hosting_format_cents($price) ?></label>
+          <?php endforeach; ?>
+          <?php if ($enabled === []): ?>
+            <span style="color:#999;">该套餐未设置购买周期</span>
           <?php endif; ?>
         </div>
       </div>
@@ -53,20 +56,32 @@ ob_start();
         </div>
       </div>
 
-      <?php if (!empty($methods)): ?>
-        <div class="layui-form-item">
-          <label class="layui-form-label">支付方式</label>
-          <div class="layui-input-block hs-form-choices" style="padding-top:6px;">
-            <?php foreach ($methods as $m): ?>
-              <label class="hs-choice"><input type="radio" name="type" value="<?= htmlspecialchars($m['plugin'].'__'.$m['method']) ?>" required> <?= htmlspecialchars($m['display_name'] ?: ($m['plugin'].' / '.$m['method'])) ?></label>
-            <?php endforeach; ?>
+      <?php
+        $isFreePlan = true;
+        foreach ($enabled as $p) {
+          $field = hosting_period_price_field($p);
+          if ((int)($plan[$field] ?? 0) > 0) {
+            $isFreePlan = false;
+            break;
+          }
+        }
+      ?>
+      <?php if (!$isFreePlan): ?>
+        <?php if (!empty($methods)): ?>
+          <div class="layui-form-item">
+            <label class="layui-form-label">支付方式</label>
+            <div class="layui-input-block hs-form-choices" style="padding-top:6px;">
+              <?php foreach ($methods as $m): ?>
+                <label class="hs-choice"><input type="radio" name="type" value="<?= htmlspecialchars($m['plugin'].'__'.$m['method']) ?>" required> <?= htmlspecialchars($m['display_name'] ?: ($m['plugin'].' / '.$m['method'])) ?></label>
+              <?php endforeach; ?>
+            </div>
           </div>
-        </div>
-      <?php else: ?>
-        <div class="layui-form-item"><div class="layui-input-block" style="color:#999;">暂无可用的支付方式</div></div>
+        <?php else: ?>
+          <div class="layui-form-item"><div class="layui-input-block" style="color:#999;">暂无可用的支付方式</div></div>
+        <?php endif; ?>
       <?php endif; ?>
 
-      <?php if (!empty($nodes) && !empty($methods)): ?>
+      <?php if (!empty($nodes) && ($isFreePlan || !empty($methods))): ?>
         <div class="layui-form-item">
           <div class="layui-input-block">
             <button type="submit" class="layui-btn layui-btn-lg" id="submitBtn">确认购买</button>
@@ -115,6 +130,7 @@ ob_start();
       .then(function(r){return r.json();})
       .then(function(res){
         if(res.html){document.open();document.write(res.html);document.close();}
+        else if(res.redirect){window.location.href=res.redirect;}
         else{showMsg(res.code||'创建订单失败','error');btn.disabled=false;btn.textContent='确认购买';}
       })
       .catch(function(){showMsg('网络错误，请重试','error');btn.disabled=false;btn.textContent='确认购买';});

@@ -20,11 +20,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['act'] ?? '') === 'save') {
 		'spec_sql' => (int)($_POST['spec_sql'] ?? 0),
 		'spec_flow' => (int)($_POST['spec_flow'] ?? 0),
 		'spec_domain' => (int)($_POST['spec_domain'] ?? 0),
-		'price_month_cents' => (int)round((float)($_POST['price_month'] ?? 0) * 100),
-		'price_year_cents' => (int)round((float)($_POST['price_year'] ?? 0) * 100),
+		'enabled_periods' => isset($_POST['enabled_periods']) && is_array($_POST['enabled_periods']) ? $_POST['enabled_periods'] : [],
 		'status' => $_POST['status'] ?? 'active',
 		'sort' => (int)($_POST['sort'] ?? 50),
 	];
+	foreach (hosting_periods() as $p => $cfg) {
+		$field = hosting_period_price_field($p);
+		$data[$field] = (int)round((float)($_POST['price'][$p] ?? 0) * 100);
+	}
 	$r = hosting_plan_save($data);
 	if ($r === true) {
 		header('Location: ' . hosting_admin_url('plans'));
@@ -91,20 +94,39 @@ mnbt_admin_include('head');
 						<input type="number" name="spec_domain" class="form-control" required min="0" value="<?= (int)($plan['spec_domain'] ?? 5) ?>">
 					</div>
 				</div>
+				<div class="form-group row">
+					<label class="col-sm-3 col-form-label">购买周期与价格 (元)</label>
+					<div class="col-sm-9">
+						<div class="form-row">
+							<?php
+								$enabledPeriods = hosting_plan_enabled_periods($plan ?: []);
+								foreach (hosting_periods() as $p => $cfg):
+									$field = hosting_period_price_field($p);
+									$checked = in_array($p, $enabledPeriods, true) ? 'checked' : '';
+									$price = isset($plan[$field]) ? hosting_format_cents((int)$plan[$field]) : '0.00';
+							?>
+								<div class="form-group col-md-4">
+									<div class="input-group">
+										<div class="input-group-prepend">
+											<div class="input-group-text">
+												<input type="checkbox" name="enabled_periods[]" value="<?= htmlspecialchars($p, ENT_QUOTES) ?>" <?= $checked ?>>
+											</div>
+										</div>
+										<span class="input-group-text" style="min-width:60px;justify-content:center;"><?= htmlspecialchars($cfg['label']) ?></span>
+										<input type="number" name="price[<?= htmlspecialchars($p, ENT_QUOTES) ?>]" class="form-control" step="0.01" min="0" value="<?= htmlspecialchars($price, ENT_QUOTES) ?>">
+									</div>
+								</div>
+							<?php endforeach; ?>
+						</div>
+						<small class="form-text text-muted">勾选并填写价格即启用该周期；价格填 0 表示免费。</small>
+					</div>
+				</div>
 				<div class="form-row">
-					<div class="form-group col-md-4">
-						<label>月付价格 (元)</label>
-						<input type="number" name="price_month" class="form-control" step="0.01" min="0" value="<?= htmlspecialchars(isset($plan['price_month_cents']) ? hosting_format_cents($plan['price_month_cents']) : '0.00', ENT_QUOTES) ?>">
-					</div>
-					<div class="form-group col-md-4">
-						<label>年付价格 (元)</label>
-						<input type="number" name="price_year" class="form-control" step="0.01" min="0" value="<?= htmlspecialchars(isset($plan['price_year_cents']) ? hosting_format_cents($plan['price_year_cents']) : '0.00', ENT_QUOTES) ?>">
-					</div>
-					<div class="form-group col-md-2">
+					<div class="form-group col-md-6">
 						<label>排序</label>
 						<input type="number" name="sort" class="form-control" min="0" value="<?= (int)($plan['sort'] ?? 50) ?>">
 					</div>
-					<div class="form-group col-md-2">
+					<div class="form-group col-md-6">
 						<label>状态</label>
 						<select name="status" class="form-control">
 							<option value="active" <?= (($plan['status'] ?? 'active') === 'active') ? 'selected' : '' ?>>上架</option>

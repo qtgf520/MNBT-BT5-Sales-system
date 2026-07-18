@@ -11,6 +11,95 @@ if (!defined('IN_CRONLITE')) {
 }
 
 /* ============================================================
+ *  周期 / schema 配置
+ * ============================================================ */
+
+/** 可用购买周期定义（months 用于计算到期时间）。 */
+function hosting_periods()
+{
+	return [
+		'month'       => ['label' => '月付', 'months' => 1],
+		'quarter'     => ['label' => '季付', 'months' => 3],
+		'half_year'   => ['label' => '半年付', 'months' => 6],
+		'year'        => ['label' => '年付', 'months' => 12],
+		'two_year'    => ['label' => '两年付', 'months' => 24],
+		'three_year'  => ['label' => '三年付', 'months' => 36],
+	];
+}
+
+/** 周期到数据库价格字段的映射。 */
+function hosting_period_price_field($period)
+{
+	$map = [
+		'month'      => 'price_month_cents',
+		'quarter'    => 'price_quarter_cents',
+		'half_year'  => 'price_half_year_cents',
+		'year'       => 'price_year_cents',
+		'two_year'   => 'price_two_year_cents',
+		'three_year' => 'price_three_year_cents',
+	];
+	return $map[$period] ?? '';
+}
+
+/** 获取套餐启用的购买周期列表。 */
+function hosting_plan_enabled_periods($plan)
+{
+	$periods = hosting_periods();
+	$enabled = [];
+	$raw = isset($plan['enabled_periods']) ? trim((string)$plan['enabled_periods']) : '';
+	if ($raw === '') {
+		// 兼容旧数据：只要对应价格 > 0 就认为启用
+		foreach (array_keys($periods) as $p) {
+			$field = hosting_period_price_field($p);
+			if ($field && (int)($plan[$field] ?? 0) > 0) {
+				$enabled[] = $p;
+			}
+		}
+		return $enabled;
+	}
+	foreach (explode(',', $raw) as $p) {
+		$p = trim($p);
+		if (isset($periods[$p])) {
+			$enabled[] = $p;
+		}
+	}
+	return $enabled;
+}
+
+/** 自动升级套餐表结构（对已经安装的插件追加新字段）。 */
+function hosting_upgrade_schema()
+{
+	global $DB;
+	if (!isset($DB)) {
+		return;
+	}
+	$cols = $DB->get_all_prepare("SHOW COLUMNS FROM MN_plugin_hosting_plan") ?: [];
+	$existing = [];
+	foreach ($cols as $c) {
+		$existing[] = $c['Field'];
+	}
+	$toAdd = [];
+	if (!in_array('price_quarter_cents', $existing, true)) {
+		$toAdd[] = "ADD COLUMN `price_quarter_cents` int(11) NOT NULL DEFAULT '0' COMMENT '季付价格（分）'";
+	}
+	if (!in_array('price_half_year_cents', $existing, true)) {
+		$toAdd[] = "ADD COLUMN `price_half_year_cents` int(11) NOT NULL DEFAULT '0' COMMENT '半年付价格（分）'";
+	}
+	if (!in_array('price_two_year_cents', $existing, true)) {
+		$toAdd[] = "ADD COLUMN `price_two_year_cents` int(11) NOT NULL DEFAULT '0' COMMENT '两年付价格（分）'";
+	}
+	if (!in_array('price_three_year_cents', $existing, true)) {
+		$toAdd[] = "ADD COLUMN `price_three_year_cents` int(11) NOT NULL DEFAULT '0' COMMENT '三年付价格（分）'";
+	}
+	if (!in_array('enabled_periods', $existing, true)) {
+		$toAdd[] = "ADD COLUMN `enabled_periods` varchar(255) NOT NULL DEFAULT '' COMMENT '允许的购买周期，逗号分隔'";
+	}
+	if (!empty($toAdd)) {
+		$DB->query("ALTER TABLE MN_plugin_hosting_plan " . implode(', ', $toAdd));
+	}
+}
+
+/* ============================================================
  *  URL / 渲染辅助
  * ============================================================ */
 
@@ -151,6 +240,16 @@ function hosting_plan_save($data)
 {
 	global $DB, $date;
 	$now = $date ?: date('Y-m-d H:i:s');
+
+	$periods = hosting_periods();
+	$enabled = [];
+	$rawEnabled = isset($data['enabled_periods']) && is_array($data['enabled_periods']) ? $data['enabled_periods'] : [];
+	foreach ($rawEnabled as $p) {
+		if (isset($periods[$p])) {
+			$enabled[] = $p;
+		}
+	}
+
 	$fields = [
 		'name' => trim((string)($data['name'] ?? '')),
 		'description' => trim((string)($data['description'] ?? '')),
@@ -160,7 +259,12 @@ function hosting_plan_save($data)
 		'spec_flow' => max(0, (int)($data['spec_flow'] ?? 0)),
 		'spec_domain' => max(0, (int)($data['spec_domain'] ?? 0)),
 		'price_month_cents' => max(0, (int)($data['price_month_cents'] ?? 0)),
+		'price_quarter_cents' => max(0, (int)($data['price_quarter_cents'] ?? 0)),
+		'price_half_year_cents' => max(0, (int)($data['price_half_year_cents'] ?? 0)),
 		'price_year_cents' => max(0, (int)($data['price_year_cents'] ?? 0)),
+		'price_two_year_cents' => max(0, (int)($data['price_two_year_cents'] ?? 0)),
+		'price_three_year_cents' => max(0, (int)($data['price_three_year_cents'] ?? 0)),
+		'enabled_periods' => implode(',', $enabled),
 		'status' => ($data['status'] ?? 'active') === 'inactive' ? 'inactive' : 'active',
 		'sort' => max(0, (int)($data['sort'] ?? 50)),
 		'updated_at' => $now,
@@ -168,18 +272,23 @@ function hosting_plan_save($data)
 	if ($fields['name'] === '') {
 		return '套餐名称不能为空';
 	}
+	// 至少启用一个有效周期
+	if ($enabled === []) {
+		return '请至少选择一个购买周期';
+	}
+
 	$id = (int)($data['id'] ?? 0);
 	if ($id > 0) {
 		$ok = $DB->query_prepare(
-			"UPDATE MN_plugin_hosting_plan SET name=?, description=?, spec_type=?, spec_web=?, spec_sql=?, spec_flow=?, spec_domain=?, price_month_cents=?, price_year_cents=?, status=?, sort=?, updated_at=? WHERE id=?",
-			[$fields['name'], $fields['description'], $fields['spec_type'], $fields['spec_web'], $fields['spec_sql'], $fields['spec_flow'], $fields['spec_domain'], $fields['price_month_cents'], $fields['price_year_cents'], $fields['status'], $fields['sort'], $fields['updated_at'], $id]
+			"UPDATE MN_plugin_hosting_plan SET name=?, description=?, spec_type=?, spec_web=?, spec_sql=?, spec_flow=?, spec_domain=?, price_month_cents=?, price_quarter_cents=?, price_half_year_cents=?, price_year_cents=?, price_two_year_cents=?, price_three_year_cents=?, enabled_periods=?, status=?, sort=?, updated_at=? WHERE id=?",
+			[$fields['name'], $fields['description'], $fields['spec_type'], $fields['spec_web'], $fields['spec_sql'], $fields['spec_flow'], $fields['spec_domain'], $fields['price_month_cents'], $fields['price_quarter_cents'], $fields['price_half_year_cents'], $fields['price_year_cents'], $fields['price_two_year_cents'], $fields['price_three_year_cents'], $fields['enabled_periods'], $fields['status'], $fields['sort'], $fields['updated_at'], $id]
 		);
 		return $ok ? true : '更新失败';
 	}
 	$fields['created_at'] = $now;
 	$ok = $DB->query_prepare(
-		"INSERT INTO MN_plugin_hosting_plan (name, description, spec_type, spec_web, spec_sql, spec_flow, spec_domain, price_month_cents, price_year_cents, status, sort, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
-		[$fields['name'], $fields['description'], $fields['spec_type'], $fields['spec_web'], $fields['spec_sql'], $fields['spec_flow'], $fields['spec_domain'], $fields['price_month_cents'], $fields['price_year_cents'], $fields['status'], $fields['sort'], $fields['created_at'], $fields['updated_at']]
+		"INSERT INTO MN_plugin_hosting_plan (name, description, spec_type, spec_web, spec_sql, spec_flow, spec_domain, price_month_cents, price_quarter_cents, price_half_year_cents, price_year_cents, price_two_year_cents, price_three_year_cents, enabled_periods, status, sort, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+		[$fields['name'], $fields['description'], $fields['spec_type'], $fields['spec_web'], $fields['spec_sql'], $fields['spec_flow'], $fields['spec_domain'], $fields['price_month_cents'], $fields['price_quarter_cents'], $fields['price_half_year_cents'], $fields['price_year_cents'], $fields['price_two_year_cents'], $fields['price_three_year_cents'], $fields['enabled_periods'], $fields['status'], $fields['sort'], $fields['created_at'], $fields['updated_at']]
 	);
 	return $ok ? true : '新增失败';
 }
@@ -288,10 +397,18 @@ function hosting_order_list_all($page = 1, $per_page = 30, $filters = [])
 function hosting_order_create($user, $plan, $period, $node)
 {
 	global $DB, $date;
-	$period = $period === 'year' ? 'year' : 'month';
-	$amount_cents = $period === 'year' ? (int)$plan['price_year_cents'] : (int)$plan['price_month_cents'];
-	if ($amount_cents <= 0) {
-		return ['ok' => false, 'msg' => '该套餐此周期不可购买（价格为 0）'];
+	$periods = hosting_periods();
+	if (!isset($periods[$period])) {
+		return ['ok' => false, 'msg' => '无效的购买周期'];
+	}
+	$enabled = hosting_plan_enabled_periods($plan);
+	if (!in_array($period, $enabled, true)) {
+		return ['ok' => false, 'msg' => '该套餐不支持此购买周期'];
+	}
+	$field = hosting_period_price_field($period);
+	$amount_cents = $field ? (int)($plan[$field] ?? 0) : 0;
+	if ($amount_cents < 0) {
+		return ['ok' => false, 'msg' => '该套餐此周期价格异常'];
 	}
 	if (!hosting_node_get($node)) {
 		return ['ok' => false, 'msg' => '所选节点不存在'];
@@ -447,10 +564,10 @@ function hosting_open_host($order_id)
 	$mrwww = $node['btos'] == '1' ? $conf['hxu'] : $conf['hxu'];
 	$mrml = ($node['btos'] == '1' ? $conf['hxi'] : $conf['hxo']) . '/' . $btserw;
 
-	// 计算到期时间
+	// 计算到期时间（支持月/季/半年/年/两年/三年）
 	$now_ts = time();
-	$period = $order['period'] === 'year' ? 'year' : 'month';
-	$expire_ts = strtotime($period === 'year' ? '+1 year' : '+1 month', $now_ts);
+	$periodCfg = hosting_periods()[($order['period'] ?? 'month')] ?? hosting_periods()['month'];
+	$expire_ts = strtotime('+' . (int)$periodCfg['months'] . ' months', $now_ts);
 	$datae = date('Y-m-d', $expire_ts);
 
 	// 调用宝塔 API 开通
