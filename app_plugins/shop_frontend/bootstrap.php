@@ -57,7 +57,8 @@ function shop_frontend_serve_spa() {
 <script src="https://cdn.jsdelivr.net/npm/vuetify@3.7.0/dist/vuetify.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/vue-router@4.4.0/dist/vue-router.global.prod.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/axios@1.7.0/dist/axios.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/pinia@2.2.0/dist/pinia.iife.prod.js"></script>
+<script>window.VueDemi={};['onBeforeMount','onMounted','onBeforeUpdate','onUpdated','ref','computed','watch','isVue2','isVue3','h','markRaw'].forEach(function(k){VueDemi[k]=Vue[k]||function(){}});VueDemi.install=function(){};</script>
+<script src="https://cdn.jsdelivr.net/npm/pinia@2.1.7/dist/pinia.iife.prod.js"></script>
 <?php shop_frontend_render_inline_spa(); ?>
 </body>
 </html>
