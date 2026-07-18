@@ -91,6 +91,10 @@ app_plugins/{slug}/
 | `webhook_notify/` | Webhook 推送（URL + HMAC + 事件开关 + 测试） |
 | `epay/` | P3 示例：易支付插件（支付宝/微信/QQ 钱包，MD5 签名） |
 | `alipay_official/` | P3 示例：支付宝官方 API（PC 电脑网站支付 + 当面付扫码，RSA2 签名） |
+| `user_info/` | 用户中心插件（独立账户系统、登录/注册/资料/密码） |
+| `balance/` | 余额插件（依赖 user_info；后台余额列表、用户充值/消费日志） |
+| `hosting_shop/` | 主机商店插件（依赖 user_info + balance；套餐下单、自动开通） |
+| `domain_shop/` | 域名商店插件：二级域名售卖 + DNSPod DNS 解析 + `host.created` 钩子自动建 A 记录；接管原核心 `ymgm` 业务与 `MN_ym` 表的售卖/绑定逻辑 |
 
 Webhook 验签：请求头 `X-MNBT-Signature: sha256=<hex>`，  
 `hash_hmac('sha256', raw_body, secret) === hex`。

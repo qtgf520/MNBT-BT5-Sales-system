@@ -100,13 +100,7 @@
               </ul>
             </li>
 
-            <li class="nav-item nav-item-has-subnav">
-              <a href="javascript:void(0)"><i class="mdi mdi-domain"></i><span>域名管理</span></a>
-              <ul class="nav nav-subnav">
-                <li><a class="multitabs" href="list.php?gn=ym">域名列表</a></li>
-                <li><a class="multitabs" href="add.php?gn=ym">添加域名</a></li>
-              </ul>
-            </li>
+            <!-- 域名管理已迁移至 domain_shop 插件，由 mnbt_plugin_render_menu_admin_html() 渲染 -->
 
             <li class="nav-item nav-item-has-subnav">
               <a href="javascript:void(0)"><i class="mdi mdi-webpack"></i><span>一键部署</span></a>

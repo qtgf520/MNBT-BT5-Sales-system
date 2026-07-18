@@ -16,7 +16,7 @@ require_once './api/node.php';
 require_once './api/zj.php';
 require_once './api/cx.php';
 require_once './api/dd.php';
-require_once './api/ym.php';
+// ym.php 已删除：域名管理 AJAX 已迁移至 domain_shop 插件（p_domain_*）
 require_once './api/gg.php';
 require_once './api/plugin.php';
 json_exit('系统指令不存在！');

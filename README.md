@@ -514,6 +514,7 @@ templates/my_theme/
 | **user_info** | 独立用户系统（注册/登录/个人信息/修改密码） | [README](app_plugins/user_info/README.md) |
 | **balance** | 余额管理（充值/消费/流水，依赖 user_info） | [README](app_plugins/balance/README.md) |
 | **hosting_shop** | 主机售卖（套餐/购买/自动开通，依赖 user_info + balance） | [README](app_plugins/hosting_shop/README.md) |
+| **domain_shop** | 域名商店：二级域名售卖 + DNSPod DNS 解析 + `host.created` 钩子自动建 A 记录；接管原核心 `ymgm` 业务与 `MN_ym` 售卖/绑定逻辑 | [目录](app_plugins/domain_shop/) |
 
 #### 支付插件
 
@@ -539,7 +540,7 @@ templates/my_theme/
 - HTTP：`mnbt_http_get` / `mnbt_http_post`（默认禁内网）
 - 配置：`mnbt_plugin_option_get/set`
 - 页面：`admin/plugin.php?p=slug&page=...`、`user/plugin.php?p=slug&page=...`
-- 内置插件：`user_info`、`balance`、`hosting_shop`、`epay`、`alipay_official`、`webhook_notify`、`home_demo`、`hello_demo`
+- 内置插件：`user_info`、`balance`、`hosting_shop`、`domain_shop`、`epay`、`alipay_official`、`webhook_notify`、`home_demo`、`hello_demo`
 
 ---
 

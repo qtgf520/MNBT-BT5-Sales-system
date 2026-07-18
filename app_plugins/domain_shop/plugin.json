@@ -1,0 +1,10 @@
+{
+  "id": "domain_shop",
+  "name": "域名商品与 DNS 解析",
+  "version": "1.0.0",
+  "author": "MNBT",
+  "description": "二级域名售卖商品管理 + DNSPod DNS 解析自动创建。接管原核心 MN_ym 商品 CRUD 与 ymgm 支付结算，并新增 DNS 记录管理能力。",
+  "requires_mnbt": "1.81",
+  "type": ["business"],
+  "requires_plugins": []
+}

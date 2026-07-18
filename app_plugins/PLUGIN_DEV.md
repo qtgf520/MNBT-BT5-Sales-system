@@ -201,6 +201,13 @@ mnbt_register_ajax('user', 'p_my_plugin_list', function () {
 分发顺序：**插件注册表 → 核心 `api/*.php`**。  
 重复 `gn` 后注册失败并写错误日志。
 
+**注意：与核心 `gn` 同名的陷阱**  
+插件 AJAX 在 `user/ajax.php` 中分发时，**早于**核心条件分支（如 CDN 产品检查 `hxc=='1'`）。
+因此若插件注册了 `gn='tjurl'`，则 CDN 产品的 `tjurl` 请求也会被插件处理器接管，
+即便插件本意只想处理非 CDN 场景。最佳实践：始终使用 `p_{slug}_{action}` 前缀。
+参考 `domain_shop` 插件：原 `tjurl/scurl/seturl` 改名为 `p_domain_tjurl` 等，
+让 CDN 产品继续走核心 `user/api/cdn.php`。
+
 **推荐返回：**
 
 ```php
@@ -495,7 +502,7 @@ mnbt_register_payment('my_pay', [
 | `money`        | 金额（元，字符串） |
 | `type`         | 支付方式 type，如 `epay__alipay` |
 | `siteurl`      | 站点根 URL（带协议 + 末尾斜杠） |
-| `pay_lx`       | 业务类型：`yjbs` 一键部署 / `ymgm` 域名购买 |
+| `pay_lx`       | 业务类型：`yjbs` 一键部署（核心结算内置）；其他业务（如 `ymgm` 域名购买）由对应插件在 `order.paid` 钩子内自行处理 |
 
 插件用 `siteurl` 拼接 `notify_url` / `return_url`，例如：
 ```php
@@ -517,7 +524,8 @@ mnbt_register_route('*', '/pay/my_pay/notify', function ($params, $ctx) {
         echo 'fail';
         return;
     }
-    // 3. 调用统一结算函数（处理 yjbs/ymgm 业务、标记订单完成、触发 order.paid）
+    // 3. 调用统一结算函数（处理 yjbs 业务、标记订单完成、触发 order.paid；
+    //    其他业务类型如 ymgm 由对应插件在 order.paid 钩子内自行处理）
     $result = mnbt_pay_settle_order(
         $_POST['out_trade_no'],
         $_POST['trade_status'],  // 支付宝系: TRADE_SUCCESS
@@ -765,6 +773,10 @@ mnbt_add_action('host.created', function ($host, $ctx = []) {
 | `webhook_notify/` | P1 示例：Webhook 推送 |
 | `epay/` | P3 示例：易支付插件（支付宝/微信/QQ） |
 | `alipay_official/` | P3 示例：支付宝官方 API（PC + 当面付） |
+| `user_info/` | 用户中心插件（独立账户系统、登录/注册/资料/密码） |
+| `balance/` | 余额插件（依赖 user_info；后台余额列表、用户充值/消费日志） |
+| `hosting_shop/` | 主机商店插件（依赖 user_info + balance；套餐下单、自动开通） |
+| `domain_shop/` | 域名商店插件：二级域名售卖 + DNSPod DNS 解析 + `host.created` 钩子自动建 A 记录；接管原核心 `ymgm` 业务与 `MN_ym` 表的售卖/绑定逻辑 |
 
 ---
 
