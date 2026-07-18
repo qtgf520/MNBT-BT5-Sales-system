@@ -47,7 +47,7 @@ ob_start();
     <div class="layui-card-body" style="padding:0 16px;">
       <ul class="hs-node-list">
         <?php foreach ($nodes as $n): ?>
-          <li><span class="hs-node-name"><?= htmlspecialchars($n['btdh']) ?></span><span class="hs-node-info"><?= htmlspecialchars($n['btip']) ?>:<?= htmlspecialchars($n['btdk']) ?> · <?= $n['btos']=='1'?'Linux':'Windows' ?> · <?= $n['ptl']=='true'?'HTTPS':'HTTP' ?></span></li>
+          <li><span class="hs-node-name"><?= htmlspecialchars($n['btdh']) ?></span></li>
         <?php endforeach; ?>
       </ul>
     </div>

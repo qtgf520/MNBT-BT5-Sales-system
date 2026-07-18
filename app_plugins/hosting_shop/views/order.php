@@ -46,7 +46,7 @@ ob_start();
             <select name="node" required class="layui-input" style="max-width:360px;">
               <option value="">请选择节点</option>
               <?php foreach ($nodes as $n): ?>
-                <option value="<?= htmlspecialchars($n['btdh']) ?>"><?= htmlspecialchars($n['btdh']) ?>（<?= htmlspecialchars($n['btip']) ?>，<?= $n['btos']=='1'?'Linux':'Windows' ?>）</option>
+                <option value="<?= htmlspecialchars($n['btdh']) ?>"><?= htmlspecialchars($n['btdh']) ?></option>
               <?php endforeach; ?>
             </select>
           <?php endif; ?>

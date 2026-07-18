@@ -195,11 +195,11 @@ function hosting_plan_delete($plan_id)
  *  节点管理
  * ============================================================ */
 
-/** 获取可用宝塔节点列表（MN_bt 表）。 */
+/** 获取可用宝塔节点列表（用户端，仅返回节点标识，不暴露 IP/端口/系统/协议等敏感信息）。 */
 function hosting_node_list()
 {
 	global $DB;
-	return $DB->get_all_prepare("SELECT btdh, btip, btdk, btos, ptl FROM MN_bt ORDER BY id ASC") ?: [];
+	return $DB->get_all_prepare("SELECT btdh FROM MN_bt ORDER BY id ASC") ?: [];
 }
 
 /** 获取单个节点。 */
