@@ -9,19 +9,22 @@ $pluginDir = __DIR__;
 require_once $pluginDir . '/lib/shop_frontend.php';
 
 /* ============================================================
- *  1) 商店首页接管 — mnbt_plugin_dispatch_home 返回 true 则停止默认跳转
+ *  1) 商店首页接管 — mnbt_register_home + 直接渲染 SPA
  * ============================================================ */
-mnbt_add_action('dispatch_home', function () {
+mnbt_register_home(function ($ctx) {
     shop_frontend_serve_spa();
     return true;
 }, 100);
 
 /* ============================================================
- *  2) SPA 入口 — GET /shop (也可从首页接管进入)
+ *  2) SPA 路由 — Vue Router createWebHistory 要求服务端同返 index.html
  * ============================================================ */
-mnbt_register_route('GET', '/shop', function () {
-    shop_frontend_serve_spa();
-});
+$spaPaths = ['/shop', '/shop/{id}', '/login', '/register', '/dashboard', '/orders', '/balance', '/profile'];
+foreach ($spaPaths as $path) {
+    mnbt_register_route('GET', $path, function () {
+        shop_frontend_serve_spa();
+    });
+}
 
 function shop_frontend_serve_spa() {
     $spaDir = __DIR__ . '/views/spa';
