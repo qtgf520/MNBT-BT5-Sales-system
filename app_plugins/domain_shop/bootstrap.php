@@ -65,14 +65,12 @@ mnbt_register_menu('user', [
 		[
 			'title'     => '域名绑定',
 			'page'      => 'bind',
-			'icon'      => 'mdi-domain',
 			'order'     => 10,
 			'multitabs' => true,
 		],
 		[
 			'title'     => '我的 DNS 记录',
 			'page'      => 'dns_records',
-			'icon'      => 'mdi-dns',
 			'order'     => 20,
 			'multitabs' => true,
 		],
