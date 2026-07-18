@@ -16,12 +16,6 @@ ob_start();
         <thead><tr><th>套餐</th><th>主机账号</th><th>控制面板密码</th><th>节点</th><th>到期时间</th><th>状态</th><th>操作</th></tr></thead>
         <tbody>
           <?php foreach ($assets as $a): ?>
-            <?php
-              $panelUrl = '';
-              if (!empty($a['btip']) && !empty($a['btdk'])) {
-                $panelUrl = (($a['ptl'] ?? '') === 'true' ? 'https' : 'http') . '://' . $a['btip'] . ':' . $a['btdk'];
-              }
-            ?>
             <tr>
               <td><?= htmlspecialchars($a['plan_name']) ?></td>
               <td class="ly-mono"><span class="hs-copy-text" data-copy="<?= htmlspecialchars($a['host_user'] ?? '', ENT_QUOTES) ?>"><?= htmlspecialchars($a['host_user'] ?? '-') ?></span></td>
@@ -44,11 +38,8 @@ ob_start();
                     <input type="hidden" name="password" value="<?= htmlspecialchars($a['host_pass'], ENT_QUOTES) ?>">
                     <button type="submit" class="layui-btn layui-btn-xs layui-btn-normal">一键登录</button>
                   </form>
-                <?php endif; ?>
-                <?php if ($panelUrl): ?>
-                  <a href="<?= htmlspecialchars($panelUrl, ENT_QUOTES) ?>" target="_blank" class="layui-btn layui-btn-xs" rel="noopener noreferrer">打开面板</a>
                 <?php else: ?>
-                  <span style="color:#999;font-size:12px;">无节点信息</span>
+                  <span style="color:#999;font-size:12px;">无登录信息</span>
                 <?php endif; ?>
               </td>
             </tr>
