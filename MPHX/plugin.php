@@ -606,8 +606,7 @@ function _mnbt_plugin_render_menu_item($it, $depth = 0)
 	$icon  = htmlspecialchars($it['icon'] ?? 'mdi-puzzle', ENT_QUOTES, 'UTF-8');
 	if (!empty($it['children'])) {
 		$childrenHtml = _mnbt_plugin_render_menu_children($it['children'], $depth + 1);
-		$cls = $depth > 0 ? 'nav-item-has-subnav' : 'nav-item nav-item-has-subnav';
-		return '<li class="' . $cls . '">'
+		return '<li class="nav-item-has-subnav">'
 			. ' <a href="javascript:void(0)"><i class="mdi ' . $icon . '"></i> <span>' . $title . '</span></a>'
 			. '<ul class="nav nav-subnav">' . $childrenHtml . '</ul></li>';
 	}
@@ -635,29 +634,14 @@ function mnbt_plugin_render_menu_side_html($side)
 	if (!$items) {
 		return '';
 	}
-	$groups = [];
-	$flat   = [];
+	$inner = '';
 	foreach ($items as $it) {
-		if (!empty($it['children'])) {
-			$groups[] = $it;
-		} else {
-			$flat[] = $it;
-		}
+		$inner .= _mnbt_plugin_render_menu_item($it, 1);
 	}
-	$out = '';
-	// Groups (items with children) → top-level nav-item-has-subnav
-	foreach ($groups as $g) {
-		$out .= _mnbt_plugin_render_menu_item($g, 0);
+	if ($inner === '') {
+		return '';
 	}
-	// Flat items → legacy "插件" wrapper
-	if ($flat) {
-		$flatHtml = '';
-		foreach ($flat as $f) {
-			$flatHtml .= _mnbt_plugin_render_menu_item($f, 1);
-		}
-		$out .= '<li class="nav-item nav-item-has-subnav"> <a href="javascript:void(0)"> <i class="mdi mdi-puzzle"></i> <span>插件</span> </a><ul class="nav nav-subnav">' . $flatHtml . '</ul></li>';
-	}
-	return $out;
+	return '<li class="nav-item nav-item-has-subnav"> <a href="javascript:void(0)"> <i class="mdi mdi-puzzle"></i> <span>插件</span> </a><ul class="nav nav-subnav">' . $inner . '</ul></li>';
 }
 
 function mnbt_plugin_render_menu_admin_html()
