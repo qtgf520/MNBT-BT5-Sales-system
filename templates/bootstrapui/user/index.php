@@ -46,21 +46,14 @@
           </a>
         </li>
 
+        <li class="bsui-nav-item">
+          <a href="#sub-basic" class="bsui-nav-link" data-toggle="collapse" role="button" aria-expanded="false">
+            <i class="mdi mdi-console"></i> 基本配置 <i class="mdi mdi-chevron-right arrow"></i>
+          </a>
+          <ul class="collapse bsui-subnav" id="sub-basic">
 <?php if($yhc['hxc']=='1'){ ?>
-        <li class="bsui-nav-item">
-          <a href="#sub-basic" class="bsui-nav-link" data-toggle="collapse" role="button" aria-expanded="false">
-            <i class="mdi mdi-console"></i> 基本配置 <i class="mdi mdi-chevron-right arrow"></i>
-          </a>
-          <ul class="collapse bsui-subnav" id="sub-basic">
             <li><a class="bsui-subnav-link multitabs" href="set.php?gn=CDN_url">域名修改</a></li>
-          </ul>
-        </li>
 <?php }else{ ?>
-        <li class="bsui-nav-item">
-          <a href="#sub-basic" class="bsui-nav-link" data-toggle="collapse" role="button" aria-expanded="false">
-            <i class="mdi mdi-console"></i> 基本配置 <i class="mdi mdi-chevron-right arrow"></i>
-          </a>
-          <ul class="collapse bsui-subnav" id="sub-basic">
             <li><a class="bsui-subnav-link multitabs" href="set.php?gn=php">PHP版本切换</a></li>
             <li><a class="bsui-subnav-link multitabs" href="set.php?gn=url">域名修改</a></li>
             <li><a class="bsui-subnav-link multitabs" href="set.php?gn=pass">设置密码访问</a></li>
@@ -72,6 +65,7 @@
             <li><a class="bsui-subnav-link multitabs" href="set.php?gn=gzip">Gzip配置</a></li>
             <li><a class="bsui-subnav-link multitabs" href="set.php?gn=cache">缓存配置</a></li>
             <li><a class="bsui-subnav-link multitabs" href="set.php?gn=xgpass">修改密码</a></li>
+<?php }?>
           </ul>
         </li>
         <li class="bsui-nav-item">
@@ -95,7 +89,6 @@
             <li><a class="bsui-subnav-link multitabs" href="notice.php">通知日志</a></li>
           </ul>
         </li>
-<?php }?>
 <?php
 if (function_exists('mnbt_plugin_render_menu_user_html')) {
   echo mnbt_plugin_render_menu_user_html();

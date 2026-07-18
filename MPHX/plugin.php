@@ -490,6 +490,91 @@ function mnbt_register_menu($side, $item)
 	return true;
 }
 
+/**
+ * 注册页面接管 —— 让插件接管或包裹主题整页渲染（mnbt_render 调用）
+ *
+ * 当 mnbt_render($view) 被调用时，引擎会按 priority 升序遍历所有注册的 override 回调，
+ * 第一个返回非 null 的值即生效，后续回调不再调用（短路语义）。
+ *
+ * @param string   $scope    'user' 或 'admin'
+ * @param string   $view     视图名（如 'set', 'list', 'sy', 'index'）
+ * @param callable $callback 签名: function(array $vars): mixed
+ *                           返回值三选一：
+ *                           - null:                                    不接管（默认行为）
+ *                           - string:                                  完全接管，输出该字符串
+ *                           - ['before'=>string,'after'=>string]:      包裹模式，原视图前后插入内容
+ * @param int      $priority 优先级（数字越小越先执行），默认 10
+ * @return bool
+ *
+ * 示例 1：完全接管（替换整页）
+ *   mnbt_register_page_override('user', 'set', function ($vars) {
+ *       if (($_GET['gn'] ?? '') !== 'my_section') return null;
+ *       return '<div>我的自定义内容</div>';
+ *   });
+ *
+ * 示例 2：包裹模式（在原页面前后插入 banner）
+ *   mnbt_register_page_override('user', 'index', function ($vars) {
+ *       return [
+ *           'before' => '<div class="banner">公告</div>',
+ *           'after'  => '<script>console.log("page loaded")</script>',
+ *       ];
+ *   });
+ *
+ * 示例 3：按请求参数决定是否接管
+ *   mnbt_register_page_override('admin', 'list', function ($vars) {
+ *       if (($_GET['gn'] ?? '') === 'plugin_section') {
+ *           return render_my_plugin_page();
+ *       }
+ *       return null; // 其他 gn 走原逻辑
+ *   }, 5);
+ */
+function mnbt_register_page_override($scope, $view, $callback, $priority = 10)
+{
+	if (!is_callable($callback)) {
+		return false;
+	}
+	$scope = ($scope === 'admin') ? 'admin' : 'user';
+	$view = preg_replace('/[^a-zA-Z0-9_\-\/]/', '', (string)$view);
+	if ($view === '') {
+		return false;
+	}
+	return mnbt_add_filter('render.' . $scope . '.' . $view, $callback, $priority);
+}
+
+/**
+ * 注册 partial 接管 —— 让插件接管或包裹主题局部模板（mnbt_theme_include 调用）
+ *
+ * 当 mnbt_theme_include($view) 被调用时，引擎会按 priority 升序遍历所有注册的 override 回调，
+ * 第一个返回非 null 的值即生效，后续回调不再调用（短路语义）。
+ *
+ * @param string   $scope    'user' 或 'admin'
+ * @param string   $view     partial 名（如 'head', 'footer', 'sidebar'）
+ * @param callable $callback 签名: function(array $vars): mixed
+ *                           返回值三选一：
+ *                           - null:                                    不接管（默认行为）
+ *                           - string:                                  完全接管，输出该字符串
+ *                           - ['before'=>string,'after'=>string]:      包裹模式，原 partial 前后插入内容
+ * @param int      $priority 优先级（数字越小越先执行），默认 10
+ * @return bool
+ *
+ * 示例：在用户端 head 末尾追加自定义 CSS
+ *   mnbt_register_partial_override('user', 'head', function ($vars) {
+ *       return ['after' => '<style>.my-plugin-banner{color:red}</style>'];
+ *   });
+ */
+function mnbt_register_partial_override($scope, $view, $callback, $priority = 10)
+{
+	if (!is_callable($callback)) {
+		return false;
+	}
+	$scope = ($scope === 'admin') ? 'admin' : 'user';
+	$view = preg_replace('/[^a-zA-Z0-9_\-\/]/', '', (string)$view);
+	if ($view === '') {
+		return false;
+	}
+	return mnbt_add_filter('include.' . $scope . '.' . $view, $callback, $priority);
+}
+
 function mnbt_plugin_option_get($slug, $key, $default = null)
 {
 	global $DB;
@@ -669,8 +754,8 @@ function _mnbt_plugin_render_menu_item($it, $depth = 0)
 	$icon  = htmlspecialchars($it['icon'] ?? 'mdi-puzzle', ENT_QUOTES, 'UTF-8');
 	if (!empty($it['children'])) {
 		$childrenHtml = _mnbt_plugin_render_menu_children($it['children'], $depth + 1);
-		return '<li class="nav-item-has-subnav">'
-			. ' <a href="javascript:void(0)"><i class="mdi ' . $icon . '"></i> <span>' . $title . '</span></a>'
+		return '<li class="nav-item nav-item-has-subnav">'
+			. '<a href="javascript:void(0)"><i class="mdi ' . $icon . '"></i> <span>' . $title . '</span></a>'
 			. '<ul class="nav nav-subnav">' . $childrenHtml . '</ul></li>';
 	}
 	$url = htmlspecialchars($it['url'] ?? 'javascript:void(0)', ENT_QUOTES, 'UTF-8');
@@ -690,21 +775,57 @@ function _mnbt_plugin_render_menu_children($children, $depth = 1)
 	return $html;
 }
 
-function mnbt_plugin_render_menu_side_html($side)
+/**
+ * 内部：将插件菜单树渲染成 default 主题的侧边栏 HTML（lyear 风格）。
+ * 作为未注册主题渲染器时的 fallback。
+ */
+function _mnbt_plugin_render_default_menu_html($side)
 {
 	$side = $side === 'admin' ? 'admin' : 'user';
 	$items = mnbt_plugin_menus($side);
 	if (!$items) {
 		return '';
 	}
-	$inner = '';
+	$groups = [];
+	$leafs = [];
 	foreach ($items as $it) {
-		$inner .= _mnbt_plugin_render_menu_item($it, 1);
+		if (!empty($it['children'])) {
+			$groups[] = $it;
+		} else {
+			$leafs[] = $it;
+		}
 	}
-	if ($inner === '') {
-		return '';
+	$html = '';
+	foreach ($groups as $group) {
+		$html .= _mnbt_plugin_render_menu_item($group, 1);
 	}
-	return '<li class="nav-item nav-item-has-subnav"> <a href="javascript:void(0)"> <i class="mdi mdi-puzzle"></i> <span>插件管理</span> </a><ul class="nav nav-subnav">' . $inner . '</ul></li>';
+	if (!empty($leafs)) {
+		$leafsHtml = _mnbt_plugin_render_menu_children($leafs, 1);
+		$html .= '<li class="nav-item nav-item-has-subnav">'
+			. '<a href="javascript:void(0)"><i class="mdi mdi-puzzle"></i> <span>插件管理</span></a>'
+			. '<ul class="nav nav-subnav">' . $leafsHtml . '</ul></li>';
+	}
+	return $html;
+}
+
+/**
+ * 渲染插件侧边栏菜单。
+ *
+ * 引擎优先使用当前主题注册的菜单渲染器（通过 mnbt_register_theme_menu_renderer）。
+ * 若当前主题没有注册渲染器，则回退到 default 主题结构（lyear 风格）。
+ *
+ * @param string $side 'user' 或 'admin'
+ * @return string
+ */
+function mnbt_plugin_render_menu_side_html($side)
+{
+	$side = $side === 'admin' ? 'admin' : 'user';
+	$renderer = $GLOBALS['mnbt_theme_menu_renderers'][$side] ?? null;
+	if (is_callable($renderer)) {
+		$items = mnbt_plugin_menus($side);
+		return (string)call_user_func($renderer, $items);
+	}
+	return _mnbt_plugin_render_default_menu_html($side);
 }
 
 function mnbt_plugin_render_menu_admin_html()

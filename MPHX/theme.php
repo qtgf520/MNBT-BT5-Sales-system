@@ -12,6 +12,9 @@ if (!defined('IN_CRONLITE')) {
 define('MNBT_THEME_ROOT', ROOT . 'templates/');
 define('MNBT_THEME_DEFAULT', 'default');
 
+// 主题可注册的菜单渲染器：scope => callback(array $items): string
+$GLOBALS['mnbt_theme_menu_renderers'] = ['user' => null, 'admin' => null];
+
 /**
  * 规范化主题名
  */
@@ -69,6 +72,7 @@ function mnbt_theme_resolve($view, $scope = 'user')
 		return null;
 	}
 
+	mnbt_theme_ensure_loaded($scope);
 	$theme = mnbt_theme_name($scope);
 	$candidates = [
 		MNBT_THEME_ROOT . $theme . '/' . $scope . '/' . $view . '.php',
@@ -143,28 +147,201 @@ function mnbt_asset_url($path = '')
 }
 
 /**
+ * 注册主题菜单渲染器。
+ *
+ * 每个主题在初始化时调用此函数，告诉引擎如何把自己作用域下的插件菜单树
+ * （由 mnbt_register_menu 注册）渲染成该主题侧边栏所需的 HTML。
+ *
+ * @param string   $scope    'user' 或 'admin'
+ * @param callable $callback 签名: function(array $items): string
+ *                           $items 是按 order 排好序的插件菜单树，每项含：
+ *                           - title, icon, url, order, multitabs
+ *                           - children: 子菜单数组（可选）
+ * @return bool
+ *
+ * 示例（layui 主题）：
+ *   mnbt_register_theme_menu_renderer('user', function ($items) {
+ *       $html = '';
+ *       foreach ($items as $it) {
+ *           if (!empty($it['children'])) { ... 分组 ... }
+ *           else { ... 叶子 ... }
+ *       }
+ *       return $html;
+ *   });
+ */
+function mnbt_register_theme_menu_renderer($scope, $callback)
+{
+	if (!is_callable($callback)) {
+		return false;
+	}
+	$scope = ($scope === 'admin') ? 'admin' : 'user';
+	$GLOBALS['mnbt_theme_menu_renderers'][$scope] = $callback;
+	return true;
+}
+
+/**
+ * 确保当前主题的 theme.php 初始化文件已被加载。
+ *
+ * 引擎会在首次解析主题视图时自动调用本函数。主题开发者只需在
+ * templates/{theme}/theme.php 中注册渲染器，无需手动在 index.php 中引入。
+ */
+function mnbt_theme_ensure_loaded($scope = 'user')
+{
+	static $loaded = [];
+	$scope = ($scope === 'admin') ? 'admin' : 'user';
+	if (!empty($loaded[$scope])) {
+		return;
+	}
+	$loaded[$scope] = true;
+	$theme = mnbt_theme_name($scope);
+	$initFile = MNBT_THEME_ROOT . $theme . '/theme.php';
+	if (is_file($initFile)) {
+		include_once $initFile;
+	}
+}
+
+/**
+ * 内部辅助：按 priority 遍历 override filter，第一个返回非 null 的值即短路。
+ *
+ * 与 mnbt_apply_filters 不同，本函数不串联 filter 输出 —— 任何一个 filter 返回非 null
+ * 即停止后续 filter 调用。这样插件可以用低 priority "抢注" 接管，避免被高 priority 覆盖。
+ *
+ * @param string $hook filter 名
+ * @param array  $vars 传给回调的变量
+ * @return mixed|null 第一个非 null 返回值；全部返回 null 时为 null
+ */
+function _mnbt_theme_first_override($hook, array $vars)
+{
+	if (empty($GLOBALS['mnbt_plugin_filters'][$hook])) {
+		return null;
+	}
+	$buckets = $GLOBALS['mnbt_plugin_filters'][$hook];
+	ksort($buckets, SORT_NUMERIC);
+	foreach ($buckets as $list) {
+		foreach ($list as $item) {
+			$prev = $GLOBALS['mnbt_plugin_current'];
+			$GLOBALS['mnbt_plugin_current'] = $item['plugin'];
+			try {
+				$result = call_user_func($item['cb'], $vars);
+			} catch (Throwable $e) {
+				error_log('[MNBT theme] override ' . $hook . ' @' . $item['plugin'] . ': ' . $e->getMessage());
+				$result = null;
+			}
+			$GLOBALS['mnbt_plugin_current'] = $prev;
+			if ($result !== null) {
+				return $result;
+			}
+		}
+	}
+	return null;
+}
+
+/**
  * 引入主题局部模板
+ *
+ * 插件可通过 mnbt_register_partial_override() 注册 override（filter 名: include.{scope}.{view}）
+ * 介入 partial 渲染流程。回调签名: function(array $vars): mixed
+ *
+ * 回调返回值的三种模式：
+ *   - null                                    → 不接管，继续加载原 partial（默认行为）
+ *   - string                                  → 完全接管，直接输出该字符串，跳过原 partial
+ *   - ['before' => string, 'after' => string] → 包裹模式，在原 partial 输出前后插入内容
+ *
+ * @param string $view  视图名
+ * @param array  $vars  传入模板的变量
+ * @param string $scope 'user' 或 'admin'
+ * @return bool 是否成功加载
  */
 function mnbt_theme_include($view, array $vars = [], $scope = 'user')
 {
+	$filterName = 'include.' . $scope . '.' . $view;
+	$override   = _mnbt_theme_first_override($filterName, $vars);
+
+	// 模式 1：完全接管
+	if (is_string($override)) {
+		echo $override;
+		return true;
+	}
+
+	// 解析包裹模式
+	$before = '';
+	$after  = '';
+	if (is_array($override)) {
+		$before = (string)($override['before'] ?? '');
+		$after  = (string)($override['after']  ?? '');
+	}
+
 	$path = mnbt_theme_resolve($view, $scope);
 	if ($path === null) {
+		if ($before !== '' || $after !== '') {
+			echo $before . $after;
+			return true;
+		}
 		trigger_error('Theme partial not found: ' . $scope . '/' . $view, E_USER_WARNING);
 		return false;
 	}
+
+	// 模式 2：包裹模式 - 输出 before
+	if ($before !== '') {
+		echo $before;
+	}
+
+	// 加载原 partial
 	extract($GLOBALS, EXTR_SKIP);
 	if ($vars) {
 		extract($vars, EXTR_OVERWRITE);
 	}
 	include $path;
+
+	// 模式 2：包裹模式 - 输出 after
+	if ($after !== '') {
+		echo $after;
+	}
 	return true;
 }
 
 /**
  * 渲染页面模板
+ *
+ * 插件可通过 mnbt_register_page_override() 注册 override（filter 名: render.{scope}.{view}）
+ * 介入整页渲染流程。回调签名: function(array $vars): mixed
+ *
+ * 回调返回值的三种模式：
+ *   - null                                    → 不接管，继续加载原主题文件（默认行为）
+ *   - string                                  → 完全接管，直接输出该字符串，跳过原主题文件
+ *   - ['before' => string, 'after' => string] → 包裹模式，在原主题文件输出前后插入内容
+ *
+ * 多个插件注册同一 view 的 override 时，按 priority 升序执行，第一个返回非 null 的值生效，
+ * 后续 filter 不再调用（短路语义）。
+ *
+ * @param string $view  视图名
+ * @param array  $vars  传入模板的变量
+ * @param bool   $exit  渲染完成后是否 exit
+ * @param string $scope 'user' 或 'admin'
+ * @return bool
  */
 function mnbt_render($view, array $vars = [], $exit = true, $scope = 'user')
 {
+	$filterName = 'render.' . $scope . '.' . $view;
+	$override   = _mnbt_theme_first_override($filterName, $vars);
+
+	// 模式 1：完全接管
+	if (is_string($override)) {
+		echo $override;
+		if ($exit) {
+			exit;
+		}
+		return true;
+	}
+
+	// 解析包裹模式
+	$before = '';
+	$after  = '';
+	if (is_array($override)) {
+		$before = (string)($override['before'] ?? '');
+		$after  = (string)($override['after']  ?? '');
+	}
+
 	$path = mnbt_theme_resolve($view, $scope);
 	if ($path === null) {
 		http_response_code(500);
@@ -174,11 +351,24 @@ function mnbt_render($view, array $vars = [], $exit = true, $scope = 'user')
 		}
 		return false;
 	}
+
+	// 模式 2：before
+	if ($before !== '') {
+		echo $before;
+	}
+
+	// 加载原主题文件
 	extract($GLOBALS, EXTR_SKIP);
 	if ($vars) {
 		extract($vars, EXTR_OVERWRITE);
 	}
 	include $path;
+
+	// 模式 2：after
+	if ($after !== '') {
+		echo $after;
+	}
+
 	if ($exit) {
 		exit;
 	}

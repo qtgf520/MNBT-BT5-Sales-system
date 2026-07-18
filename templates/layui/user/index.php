@@ -46,17 +46,12 @@
         <li class="ly-menu-item">
           <a href="site_stats.php" class="multitabs"><i class="mdi mdi-chart-bar"></i><span>站点统计</span></a>
         </li>
+        <li class="ly-menu-item ly-submenu">
+          <a href="javascript:;"><i class="mdi mdi-console"></i><span>基本配置</span><i class="mdi mdi-chevron-right ly-arrow"></i></a>
+          <ul class="ly-submenu-list">
 <?php if($yhc['hxc']=='1'){ ?>
-        <li class="ly-menu-item ly-submenu">
-          <a href="javascript:;"><i class="mdi mdi-console"></i><span>基本配置</span><i class="mdi mdi-chevron-right ly-arrow"></i></a>
-          <ul class="ly-submenu-list">
             <li><a href="set.php?gn=CDN_url" class="multitabs">域名修改</a></li>
-          </ul>
-        </li>
 <?php }else{ ?>
-        <li class="ly-menu-item ly-submenu">
-          <a href="javascript:;"><i class="mdi mdi-console"></i><span>基本配置</span><i class="mdi mdi-chevron-right ly-arrow"></i></a>
-          <ul class="ly-submenu-list">
             <li><a href="set.php?gn=php" class="multitabs">PHP版本切换</a></li>
             <li><a href="set.php?gn=url" class="multitabs">域名修改</a></li>
             <li><a href="set.php?gn=pass" class="multitabs">设置密码访问</a></li>
@@ -68,6 +63,7 @@
             <li><a href="set.php?gn=gzip" class="multitabs">Gzip配置</a></li>
             <li><a href="set.php?gn=cache" class="multitabs">缓存配置</a></li>
             <li><a href="set.php?gn=xgpass" class="multitabs">修改密码</a></li>
+<?php }?>
           </ul>
         </li>
         <li class="ly-menu-item ly-submenu">
@@ -87,7 +83,6 @@
             <li><a href="notice.php" class="multitabs">通知日志</a></li>
           </ul>
         </li>
-<?php }?>
 <?php
 if (function_exists('mnbt_plugin_render_menu_user_html')) {
   echo mnbt_plugin_render_menu_user_html();

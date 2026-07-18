@@ -340,12 +340,20 @@ elseif($set == "nginxrz")
     
 }
 elseif($set=='url' && $yhc['hxc']!='1'){
-// 域名绑定已迁移至 domain_shop 插件，此处通过 iframe 加载插件页面
-// 旧 url 分支的 PHP 逻辑（$cert 查询、AJAX、表单、JS）已全部迁移到
-// app_plugins/domain_shop/user/bind.php 与 app_plugins/domain_shop/user/api/bind.php
+// 域名绑定已由 domain_shop 插件通过 mnbt_register_page_override('user','set') 接管
+// 正常情况下本分支不会执行（filter 在 mnbt_render() 阶段已返回 iframe）
+// 此处保留占位符，仅在插件未启用时作为 fallback 提示
 ?>
-<div style="width:100%;height:calc(100vh - 120px);min-height:500px;padding:0;">
-  <iframe src="plugin.php?p=domain_shop&page=bind" style="width:100%;height:100%;border:0;" frameborder="0" allowtransparency="true"></iframe>
+<div class="container" style="padding-top:5%;">
+  <div class="col-sm-6">
+    <div class="card">
+      <div class="card-header"><h4>域名绑定</h4></div>
+      <div class="card-body">
+        <p class="text-muted">域名绑定功能由 domain_shop 插件提供。</p>
+        <p class="text-muted">请联系管理员启用该插件，或前往 <a href="plugin.php?p=domain_shop&page=bind">域名绑定页</a> 直接访问。</p>
+      </div>
+    </div>
+  </div>
 </div>
 <?php }elseif($set=='pass'){
 $cert=$DB->get_row_prepare("SELECT * FROM MN_bt WHERE btdh=? limit 1", [$ssbt]);

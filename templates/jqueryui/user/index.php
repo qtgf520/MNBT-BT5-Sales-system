@@ -44,29 +44,18 @@
 
     <!-- jQueryUI accordion 主导航 -->
     <div id="jqui-sidebar-accordion">
+      <h3><i class="mdi mdi-home"></i> 控制面板</h3>
+      <div>
+        <ul class="jqui-subnav">
+          <li><a href="sy.php" class="multitabs">控制面板</a></li>
+        </ul>
+      </div>
+      <h3><i class="mdi mdi-console"></i> 基本配置</h3>
+      <div>
+        <ul class="jqui-subnav">
 <?php if($yhc['hxc']=='1'){ ?>
-      <h3><i class="mdi mdi-home"></i> 控制面板</h3>
-      <div>
-        <ul class="jqui-subnav">
-          <li><a href="sy.php" class="multitabs">控制面板</a></li>
-        </ul>
-      </div>
-      <h3><i class="mdi mdi-console"></i> 基本配置</h3>
-      <div>
-        <ul class="jqui-subnav">
           <li><a class="multitabs" href="set.php?gn=CDN_url">域名修改</a></li>
-        </ul>
-      </div>
 <?php }else{ ?>
-      <h3><i class="mdi mdi-home"></i> 控制面板</h3>
-      <div>
-        <ul class="jqui-subnav">
-          <li><a href="sy.php" class="multitabs">控制面板</a></li>
-        </ul>
-      </div>
-      <h3><i class="mdi mdi-console"></i> 基本配置</h3>
-      <div>
-        <ul class="jqui-subnav">
           <li><a class="multitabs" href="set.php?gn=php">PHP版本切换</a></li>
           <li><a class="multitabs" href="set.php?gn=url">域名修改</a></li>
           <li><a class="multitabs" href="set.php?gn=pass">设置密码访问</a></li>
@@ -78,6 +67,7 @@
           <li><a class="multitabs" href="set.php?gn=gzip">Gzip配置</a></li>
           <li><a class="multitabs" href="set.php?gn=cache">缓存配置</a></li>
           <li><a class="multitabs" href="set.php?gn=xgpass">修改密码</a></li>
+<?php }?>
         </ul>
       </div>
       <h3><i class="mdi mdi-format-align-justify"></i> 数据管理</h3>
@@ -97,7 +87,6 @@
           <li><a class="multitabs" href="notice.php">通知日志</a></li>
         </ul>
       </div>
-<?php }?>
 <?php
 if (function_exists('mnbt_plugin_render_menu_user_html')) {
   echo mnbt_plugin_render_menu_user_html();

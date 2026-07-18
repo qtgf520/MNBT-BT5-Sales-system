@@ -21,25 +21,32 @@ mnbt_plugin_register('domain_shop', ['name' => '域名商品与 DNS 解析']);
  * 1. 后台菜单
  * ============================================================ */
 mnbt_register_menu('admin', [
-	'title' => '域名商品',
-	'page'  => 'products',
-	'icon'  => 'mdi-domain',
-	'order' => 30,
-	'multitabs' => true,
-]);
-mnbt_register_menu('admin', [
-	'title' => 'DNS 服务商',
-	'page'  => 'dns_provider',
-	'icon'  => 'mdi-dns',
-	'order' => 31,
-	'multitabs' => true,
-]);
-mnbt_register_menu('admin', [
-	'title' => 'DNS 记录',
-	'page'  => 'dns_records',
-	'icon'  => 'mdi-format-list-bulleted',
-	'order' => 32,
-	'multitabs' => true,
+	'title'    => '域名服务',
+	'icon'     => 'mdi-web',
+	'order'    => 30,
+	'children' => [
+		[
+			'title'     => '域名商品',
+			'page'      => 'products',
+			'icon'      => 'mdi-domain',
+			'order'     => 10,
+			'multitabs' => true,
+		],
+		[
+			'title'     => 'DNS 服务商',
+			'page'      => 'dns_provider',
+			'icon'      => 'mdi-dns',
+			'order'     => 20,
+			'multitabs' => true,
+		],
+		[
+			'title'     => 'DNS 记录',
+			'page'      => 'dns_records',
+			'icon'      => 'mdi-format-list-bulleted',
+			'order'     => 30,
+			'multitabs' => true,
+		],
+	],
 ]);
 
 mnbt_register_page('admin', 'products',      'admin/products.php',      '域名商品列表');
@@ -51,18 +58,25 @@ mnbt_register_page('admin', 'dns_records',   'admin/dns_records.php',   'DNS 记
  * 2. 用户端菜单（default 主题 sidebar 自动渲染）
  * ============================================================ */
 mnbt_register_menu('user', [
-	'title' => '我的 DNS 记录',
-	'page'  => 'dns_records',
-	'icon'  => 'mdi-dns',
-	'order' => 40,
-	'multitabs' => true,
-]);
-mnbt_register_menu('user', [
-	'title' => '域名绑定',
-	'page'  => 'bind',
-	'icon'  => 'mdi-domain',
-	'order' => 41,
-	'multitabs' => true,
+	'title'    => '域名服务',
+	'icon'     => 'mdi-web',
+	'order'    => 40,
+	'children' => [
+		[
+			'title'     => '域名绑定',
+			'page'      => 'bind',
+			'icon'      => 'mdi-domain',
+			'order'     => 10,
+			'multitabs' => true,
+		],
+		[
+			'title'     => '我的 DNS 记录',
+			'page'      => 'dns_records',
+			'icon'      => 'mdi-dns',
+			'order'     => 20,
+			'multitabs' => true,
+		],
+	],
 ]);
 mnbt_register_page('user', 'dns_records', 'user/dns_records.php', '我的 DNS 记录');
 mnbt_register_page('user', 'bind',        'user/bind.php',        '域名绑定');
@@ -304,4 +318,25 @@ mnbt_register_route('POST', '/domain/buy', function ($params, $ctx) {
 	// 兼容 user/pay.php 的 ymgm 下单流程，迁移到此处
 	require_once __DIR__ . '/lib/buy.php';
 	domain_shop_handle_buy();
+});
+
+/* ============================================================
+ * 11. 页面接管：set.php 的 gn=url 分支
+ *     通过 mnbt_register_page_override() 注册 filter，
+ *     当用户访问 set.php?gn=url 且非 CDN 产品时，
+ *     返回 iframe 加载插件 bind 页，替代原主题 set.php 的 url 分支。
+ *     其他 gn（CDN_url/pass/php/ssl 等）返回 null，走原主题逻辑。
+ *     此机制使所有主题（default/layui/bootstrapui/jqueryui）自动适配，
+ *     无需修改各主题的 set.php 文件。
+ * ============================================================ */
+mnbt_register_page_override('user', 'set', function ($vars) {
+	$gn = $_GET['gn'] ?? '';
+	if ($gn !== 'url') return null; // 仅接管 url 分支
+	global $yhc;
+	if (!isset($yhc) || !is_array($yhc)) return null;
+	if (($yhc['hxc'] ?? '') == '1') return null; // CDN 产品走原 CDN_url 分支
+	// 非泛解析产品：返回 iframe 加载插件域名绑定页
+	return '<div style="width:100%;height:calc(100vh - 120px);min-height:500px;padding:0;">'
+		. '<iframe src="plugin.php?p=domain_shop&page=bind" style="width:100%;height:100%;border:0;" frameborder="0" allowtransparency="true"></iframe>'
+		. '</div>';
 });

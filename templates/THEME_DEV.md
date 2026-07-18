@@ -360,6 +360,69 @@ if (function_exists('mnbt_plugin_render_menu_user_html')) {
 
 管理端用 `mnbt_plugin_render_menu_admin_html()`。**必须保留**，否则插件菜单不会显示。
 
+### 7.4 插件菜单多主题适配（菜单渲染器）
+
+从 V1.82 起，引擎支持**主题注册自己的菜单渲染器**，解决"插件菜单在不同主题下结构不兼容"问题。
+
+**原理**：
+- 插件通过 `mnbt_register_menu('user', ...)` 注册的是**菜单数据树**（title/icon/url/order/children），不带 HTML 结构
+- 主题通过 `mnbt_register_theme_menu_renderer('user', $callback)` 注册**渲染器**，把这棵树转换成当前主题需要的 HTML
+- 主题 `index.php` 中调用 `mnbt_plugin_render_menu_user_html()` 时，引擎自动使用当前主题注册的渲染器
+- 若主题未注册渲染器，引擎回退到 default 主题（lyear）结构
+
+**主题开发者需要做的两件事**：
+
+1. 在主题根目录创建 `theme.php`，注册渲染器：
+
+```php
+<?php
+// templates/my_theme/theme.php
+if (!defined('IN_CRONLITE')) exit;
+
+mnbt_register_theme_menu_renderer('user', function ($items) {
+    $html = '';
+    foreach ($items as $it) {
+        $title = htmlspecialchars($it['title'] ?? '');
+        $icon  = htmlspecialchars($it['icon'] ?? 'mdi-puzzle');
+        if (!empty($it['children'])) {
+            // 分组
+            $html .= '<li class="my-submenu">'
+                   . '<a href="javascript:;"><i class="mdi ' . $icon . '"></i> ' . $title . '</a>'
+                   . '<ul class="my-subnav">';
+            foreach ($it['children'] as $child) {
+                $childTitle = htmlspecialchars($child['title'] ?? '');
+                $childUrl   = htmlspecialchars($child['url'] ?? 'javascript:void(0)');
+                $mt = !empty($child['multitabs']) || strpos($childUrl, 'plugin.php') !== false ? ' multitabs' : '';
+                $html .= '<li><a href="' . $childUrl . '" class="' . trim($mt) . '">' . $childTitle . '</a></li>';
+            }
+            $html .= '</ul></li>';
+        } else {
+            // 叶子项
+            $url = htmlspecialchars($it['url'] ?? 'javascript:void(0)');
+            $mt = !empty($it['multitabs']) || strpos($url, 'plugin.php') !== false ? ' multitabs' : '';
+            $html .= '<li><a href="' . $url . '" class="' . trim($mt) . '"><i class="mdi ' . $icon . '"></i> ' . $title . '</a></li>';
+        }
+    }
+    return $html;
+});
+```
+
+2. 在 `index.php` 的侧边栏合适位置调用：
+
+```php
+<?php
+if (function_exists('mnbt_plugin_render_menu_user_html')) {
+  echo mnbt_plugin_render_menu_user_html();
+}
+?>
+```
+
+**注意事项**：
+- `theme.php` 会在引擎首次解析该主题视图时**自动加载**（通过 `mnbt_theme_ensure_loaded`），无需手动 include
+- 叶子项建议统一归入一个分组（如「插件管理」），或按主题风格平铺
+- 必须给链接加 `multitabs` 类，才能让多标签插件正确接管
+- 管理端菜单同理，注册 `'admin'` scope 的渲染器
+
 ---
 
 ## 8. 主题引擎行为细节
@@ -383,6 +446,37 @@ if (function_exists('mnbt_plugin_render_menu_user_html')) {
 3. 尝试 `UPDATE MN_config SET usertheme=?`（字段不存在则失败被忽略）
 
 管理端同理（`admintheme` / `active_admin_theme`）。
+
+### 8.4 页面接管机制（Page Override）
+
+从 V1.82 起，主题引擎在 `mnbt_render()` 和 `mnbt_theme_include()` 中增加了**前置 override**机制，允许插件接管或包裹主题文件输出：
+
+| 引擎函数 | override 名 | 触发时机 |
+|----------|-------------|----------|
+| `mnbt_render($view)` | `render.{scope}.{view}` | 加载主题页面前 |
+| `mnbt_theme_include($view)` | `include.{scope}.{view}` | 加载 partial 前 |
+
+**回调返回值的三种模式**：
+- `null` → 不接管，主题文件照常加载（默认行为）
+- `string` → 完全接管，直接输出该字符串，主题文件**不会被执行**
+- `['before' => string, 'after' => string]` → 包裹模式，在主题文件输出前后插入内容
+
+**多插件协作**：
+- 按 priority 升序遍历，第一个返回非 null 的回调生效（短路语义）
+- 后续回调不再调用
+
+**典型场景**：
+- 完全接管：插件替换某页面分支（如 `set.php?gn=url`）
+- 包裹模式：在所有页面注入全局 banner / 公告 / 统计代码
+- 优先级控制：低 priority 抢注接管，高 priority 包裹装饰
+
+**主题开发者注意**：
+- 此机制**不影响**主题文件的编写，只是多了一个"被插件接管/包裹"的可能
+- 如果想让某页面**完全不被插件接管**，可在主题中直接 `include` 而非 `mnbt_render()`（不推荐，会破坏插件生态）
+- 完全接管模式下，插件返回的 HTML 通常已自带 `mnbt_theme_include('head')`，主题无需担心样式缺失
+- 包裹模式下，主题文件正常执行，插件只是在前后追加内容，不影响主题布局
+
+详见 `app_plugins/PLUGIN_DEV.md` §3.4.1。
 
 ---
 
