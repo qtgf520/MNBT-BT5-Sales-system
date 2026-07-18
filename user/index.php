@@ -14,6 +14,8 @@ if($tk){
             $g=$DB->get_row_prepare("SELECT name FROM MN_user_group WHERE id=?",[$u['group_id']]);
             $user_info['group_name']=$g['name']??'默认';
             $logs=$DB->get_all_prepare("SELECT * FROM MN_money_log WHERE user_id=? ORDER BY id DESC LIMIT 10",[$uid]);
+            // 查询已分配的主机
+            $hosts=$DB->get_all_prepare("SELECT z.id,z.sqldz,z.ssbt,z.datae,z.qk,z.user,z.pass,z.hxc FROM MN_zj z INNER JOIN MN_user_host uh ON z.id=uh.host_id WHERE uh.user_id=? ORDER BY z.id ASC",[$uid]);
         }
     }
 }
@@ -35,7 +37,7 @@ body{background:#f4f6f8;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Pi
 .header{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;padding:40px 20px 30px;text-align:center}
 .header h2{margin:0;font-size:22px;font-weight:600}
 .header p{margin:8px 0 0;font-size:14px;opacity:.85}
-.container{max-width:600px;margin:0 auto;padding:20px 16px 40px}
+.container{max-width:700px;margin:0 auto;padding:20px 16px 40px}
 .card{background:#fff;border-radius:12px;padding:20px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
 .card-title{font-size:14px;font-weight:600;color:#1e293b;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #eef1f4}
 .info-row{display:flex;justify-content:space-between;padding:6px 0;font-size:14px}
@@ -51,6 +53,14 @@ body{background:#f4f6f8;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Pi
 .btn-logout{display:block;width:100%;padding:12px;border-radius:10px;border:1px solid #e2e8f0;background:#fff;color:#ef4444;font-size:14px;cursor:pointer;text-align:center;margin-top:8px;transition:all .2s}
 .btn-logout:hover{background:#fef2f2;border-color:#fecaca}
 .empty{text-align:center;padding:20px;color:#94a3b8;font-size:13px}
+.host-item{border:1px solid #eef1f4;border-radius:8px;padding:12px;margin-bottom:10px;transition:all .2s}
+.host-item:hover{border-color:#667eea;box-shadow:0 2px 8px rgba(102,126,234,.15)}
+.host-item .host-name{font-size:15px;font-weight:600;color:#1e293b}
+.host-item .host-meta{font-size:12px;color:#94a3b8;margin-top:4px}
+.host-item .host-detail{font-size:13px;color:#475569;margin-top:6px}
+.host-item .badge-status{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:500}
+.badge-ok{background:#d1fae5;color:#065f46}
+.badge-off{background:#fee2e2;color:#991b1b}
 </style>
 </head>
 <body>
@@ -72,6 +82,24 @@ body{background:#f4f6f8;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Pi
     <div class="card-title">我的余额</div>
     <div class="money-amount">¥<?=number_format($user_info['money']??0,2)?></div>
     <div class="money-label">可用余额</div>
+  </div>
+  
+  <div class="card">
+    <div class="card-title">我的主机 <span class="text-muted small">(<?=count($hosts??[])?>台)</span></div>
+    <?php if(!empty($hosts)):?>
+      <?php foreach($hosts as $h):?>
+      <div class="host-item">
+        <div class="d-flex justify-content-between align-items-start">
+          <div class="host-name"><?=htmlspecialchars($h['sqldz'])?></div>
+          <span class="badge-status <?=$h['qk']=='false'?'badge-off':'badge-ok'?>"><?=$h['qk']=='false'?'已关闭':'正常'?></span>
+        </div>
+        <div class="host-meta">所属宝塔：<?=htmlspecialchars($h['ssbt'])?> ｜ 到期：<?=htmlspecialchars($h['datae']?:'永久')?></div>
+        <div class="host-detail">账号：<?=htmlspecialchars($h['user'])?> ｜ 密码：<?=htmlspecialchars($h['pass'])?></div>
+      </div>
+      <?php endforeach;?>
+    <?php else:?>
+    <div class="empty">暂无分配的主机</div>
+    <?php endif;?>
   </div>
   
   <div class="card">

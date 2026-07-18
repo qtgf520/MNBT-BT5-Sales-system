@@ -107,4 +107,41 @@ if($egn=='user_money_log') {
     exit(json_encode(['code'=>0,'data'=>$logs?:[]]));
     return;
 }
+// 用户-主机关联
+if($egn=='user_host_list') {
+    $uid=intval($_POST['uid']);
+    $hosts=$DB->get_all_prepare("SELECT z.*, uh.id as rid FROM MN_zj z INNER JOIN MN_user_host uh ON z.id=uh.host_id WHERE uh.user_id=? ORDER BY z.id ASC",[$uid]);
+    $all_hosts=$DB->get_all_prepare("SELECT id,ssbt,sqldz FROM MN_zj ORDER BY id ASC",[]);
+    exit(json_encode(['code'=>0,'hosts'=>$hosts?:[],'all_hosts'=>$all_hosts?:[]]));
+    return;
+}
+if($egn=='user_assign_host') {
+    $uid=intval($_POST['uid']);
+    $host_id=intval($_POST['host_id']);
+    $exist=$DB->get_row_prepare("SELECT id FROM MN_user_host WHERE user_id=? AND host_id=?",[$uid,$host_id]);
+    if($exist) json_exit('该主机已分配给此用户');
+    $DB->query_prepare("INSERT INTO MN_user_host (user_id,host_id,created_at) VALUES(?,?,?)",[$uid,$host_id,$date]);
+    json_exit('分配成功');
+    return;
+}
+if($egn=='user_remove_host') {
+    $uid=intval($_POST['uid']);
+    $host_id=intval($_POST['host_id']);
+    $DB->query_prepare("DELETE FROM MN_user_host WHERE user_id=? AND host_id=?",[$uid,$host_id]);
+    json_exit('移除成功');
+    return;
+}
+if($egn=='init_user_host_table') {
+    $DB->query_prepare("CREATE TABLE IF NOT EXISTS `MN_user_host` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `user_id` int(11) NOT NULL COMMENT 'MN_user.id',
+        `host_id` int(11) NOT NULL COMMENT 'MN_zj.id',
+        `created_at` varchar(50) NOT NULL,
+        PRIMARY KEY (`id`),
+        UNIQUE KEY `user_host` (`user_id`,`host_id`),
+        KEY `user_id` (`user_id`)
+    ) ENGINE=MyISAM DEFAULT CHARSET=utf8",[]);
+    exit(json_encode(['code'=>0,'msg'=>'表已创建']));
+    return;
+}
 return;

@@ -2221,16 +2221,96 @@ $("#tb_user").bootstrapTable({
         field: "status", title: "状态",
         formatter:function(v){return v=="true"?"<span class=\"badge badge-success\">启用</span>":"<span class=\"badge badge-danger\">禁用</span>";}
     },{
+field: "login_date", title: "最后登录"
+    },{
+        field: "reg_date", title: "注册时间"
+        field: "email", title: "邮箱"
+    },{
+        field: "money", title: "余额"
+    },{
+        field: "status", title: "状态",
+        formatter: function(v){ return v=='true'?'<span class="badge badge-success">正常</span>':'<span class="badge badge-danger">禁用</span>'; }
+    },{
         field: "reg_date", title: "注册时间"
     },{
-        field: "login_date", title: "最后登录"
-    },{
-        field: "operate", title: "操作",
+        field: "operate", title: "操作", width: 200,
         formatter: function(v,row){
-            return "<a href=\"#!\" class=\"btn btn-xs btn-primary\" onclick=\"editUser("+row.id+")\" title=\"编辑\"><i class=\"mdi mdi-pencil\"></i></a> <a href=\"#!\" class=\"btn btn-xs btn-danger\" onclick=\"deleteUser("+row.id+")\" title=\"删除\"><i class=\"mdi mdi-window-close\"></i></a>";
+            return '<button class="btn btn-xs btn-info" onclick="editUser('+row.id+')"><i class="mdi mdi-pencil"></i>编辑</button> '+
+                   '<button class="btn btn-xs btn-warning" onclick="assignHost('+row.id+',\''+row.username+'\')"><i class="mdi mdi-server"></i>分配主机</button> '+
+                   '<button class="btn btn-xs btn-danger" onclick="deleteUser('+row.id+')"><i class="mdi mdi-window-close"></i>删除</button>';
         }
     }]
 });
+</script>
+
+<!-- 分配主机弹窗 -->
+<div class="modal fade" id="hostAssignModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header"><h6 class="modal-title">分配主机 - <span id="host_user_name"></span></h6>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="host_assign_uid">
+        <div class="form-group">
+          <label>已分配的主机：</label>
+          <div id="assigned_hosts_list" class="mb-3"></div>
+        </div>
+        <div class="form-group">
+          <label>添加主机：</label>
+          <select class="form-control" id="host_select"></select>
+          <button class="btn btn-sm btn-primary mt-2" onclick="doAssignHost()"><i class="mdi mdi-plus"></i>分配</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+var hostAssignUid=0;
+function assignHost(uid,uname){
+    hostAssignUid=uid;
+    $("#host_user_name").text(uname);
+    $("#host_assign_uid").val(uid);
+    $.post("./ajax.php",{gn:"user_host_list",uid:uid},function(d){
+        var r=JSON.parse(d);
+        if(r.code!=0){msalert(4,r.msg);return;}
+        var hlist="";
+        if(r.hosts && r.hosts.length>0){
+            $.each(r.hosts,function(i,v){
+                hlist+='<div class="d-flex justify-content-between align-items-center border-bottom py-1">'+
+                       '<span>#'+v.id+' '+v.sqldz+' ('+v.ssbt+')</span>'+
+                       '<button class="btn btn-xs btn-danger" onclick="removeHost('+uid+','+v.id+')"><i class="mdi mdi-close"></i>移除</button></div>';
+            });
+        }else{
+            hlist='<div class="text-muted small">暂无分配的主机</div>';
+        }
+        $("#assigned_hosts_list").html(hlist);
+        var opts="<option value=''>请选择主机</option>";
+        if(r.all_hosts) $.each(r.all_hosts,function(i,v){opts+="<option value='"+v.id+"'>#"+v.id+" "+v.sqldz+" ("+v.ssbt+")</option>";});
+        $("#host_select").html(opts);
+        $("#hostAssignModal").modal("show");
+    });
+}
+function doAssignHost(){
+    var hid=$("#host_select").val();
+    if(!hid){msalert(3,"请选择主机",3000);return;}
+    msloading("分配中...");
+    $.post("./ajax.php",{gn:"user_assign_host",uid:hostAssignUid,host_id:hid},function(rr){
+        var r=JSON.parse(rr); msloadingde();
+        if(r.code=="分配成功"){msalert(1,"分配成功",2000);assignHost(hostAssignUid,$("#host_user_name").text());}
+        else{msalert(4,r.code,3000);}
+    });
+}
+function removeHost(uid,hid){
+    if(!confirm("确定移除该主机的分配？")) return;
+    msloading("移除中...");
+    $.post("./ajax.php",{gn:"user_remove_host",uid:uid,host_id:hid},function(rr){
+        var r=JSON.parse(rr); msloadingde();
+        if(r.code=="移除成功"){msalert(1,"移除成功",2000);assignHost(hostAssignUid,$("#host_user_name").text());}
+        else{msalert(4,r.code,3000);}
+    });
+}
 function editUser(uid) {
     $.post("./ajax.php",{gn:"user_detail",uid:uid},function(d){
         var r=JSON.parse(d); if(r.code!=0){msalert(4,r.msg);return;}
@@ -2279,6 +2359,9 @@ function addUser() {
     $.post("./ajax.php",{gn:"user_add",username:u,password:p,email:$("#add_email").val(),group_id:$("#add_group").val()},function(rr){
         var r=JSON.parse(rr); msloadingde();
         if(r.code=="添加成功"){msalert(1,"添加成功",2000);$("#userAddModal").modal("hide");$("#tb_user").bootstrapTable("refresh");}
+        else{msalert(4,r.code,3000);}
+    });
+}
         else{msalert(4,r.code,3000);}
     });
 }
