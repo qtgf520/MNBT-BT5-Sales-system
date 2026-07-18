@@ -39,7 +39,6 @@ mnbt_admin_include('head');
 					<thead>
 						<tr>
 							<th style="width:60px">ID</th>
-							<th>用户ID</th>
 							<th>用户名</th>
 							<th>邮箱</th>
 							<th>余额（元）</th>
@@ -50,13 +49,12 @@ mnbt_admin_include('head');
 					</thead>
 					<tbody>
 						<?php if (empty($list)): ?>
-							<tr><td colspan="8" class="text-center text-muted">暂无记录</td></tr>
+							<tr><td colspan="7" class="text-center text-muted">暂无记录</td></tr>
 						<?php else: ?>
 							<?php foreach ($list as $b): ?>
 								<tr>
-									<td><?= (int)$b['id'] ?></td>
 									<td><?= (int)$b['user_id'] ?></td>
-									<td><code><?= htmlspecialchars($b['username'] ?: ('#' . $b['user_id']), ENT_QUOTES) ?></code></td>
+									<td><?= htmlspecialchars($b['username'] ?: ('#' . $b['user_id']), ENT_QUOTES) ?></td>
 									<td><?= htmlspecialchars($b['email'] ?: '-', ENT_QUOTES) ?></td>
 									<td><b class="text-primary">¥<?= htmlspecialchars(balance_format((int)$b['balance']), ENT_QUOTES) ?></b></td>
 									<td>
@@ -66,7 +64,7 @@ mnbt_admin_include('head');
 											<span class="badge badge-danger">禁用</span>
 										<?php endif; ?>
 									</td>
-									<td class="small text-muted"><?= htmlspecialchars($b['updated_at'], ENT_QUOTES) ?></td>
+									<td class="small text-muted"><?= htmlspecialchars($b['updated_at'] ?: '-', ENT_QUOTES) ?></td>
 									<td>
 										<button type="button" class="btn btn-sm btn-outline-success" onclick="adjustBalance(<?= (int)$b['user_id'] ?>, '<?= htmlspecialchars($b['username'] ?: ('#' . $b['user_id']), ENT_QUOTES) ?>', 'add')">加款</button>
 										<button type="button" class="btn btn-sm btn-outline-danger" onclick="adjustBalance(<?= (int)$b['user_id'] ?>, '<?= htmlspecialchars($b['username'] ?: ('#' . $b['user_id']), ENT_QUOTES) ?>', 'deduct')">扣款</button>

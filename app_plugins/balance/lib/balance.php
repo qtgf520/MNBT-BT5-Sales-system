@@ -241,24 +241,23 @@ function balance_admin_list($page = 1, $per_page = 30, $kw = '')
 	$per_page = max(1, min(200, (int)$per_page));
 	$offset = ($page - 1) * $per_page;
 
-	$join = '';
 	$where = '';
 	$params = [];
 	if ($kw !== '') {
-		$join = " LEFT JOIN MN_plugin_user u ON b.user_id=u.id";
 		$where = " WHERE u.username LIKE ?";
 		$params = ['%' . $kw . '%'];
 	}
 
-	$count_row = $DB->get_row_prepare("SELECT COUNT(*) AS cnt FROM MN_plugin_balance b{$join}{$where}", $params);
+	// 以 MN_plugin_user 为主表，LEFT JOIN 余额表，保证余额为 0 或未产生余额记录的用户也显示
+	$count_row = $DB->get_row_prepare("SELECT COUNT(*) AS cnt FROM MN_plugin_user u{$where}", $params);
 	$total = $count_row ? (int)$count_row['cnt'] : 0;
 
 	$list = $DB->get_all_prepare(
-		"SELECT b.*, u.username, u.email, u.status
-		 FROM MN_plugin_balance b
-		 LEFT JOIN MN_plugin_user u ON b.user_id=u.id
-		 " . ($kw !== '' ? " WHERE u.username LIKE ?" : "") . "
-		 ORDER BY b.id DESC
+		"SELECT u.id AS user_id, u.username, u.email, u.status, b.id, COALESCE(b.balance, 0) AS balance, b.updated_at
+		 FROM MN_plugin_user u
+		 LEFT JOIN MN_plugin_balance b ON b.user_id = u.id
+		 {$where}
+		 ORDER BY u.id DESC
 		 LIMIT {$offset},{$per_page}",
 		$params
 	) ?: [];
