@@ -63,5 +63,3 @@ CREATE TABLE `MN_plugin_hosting_asset` (
   KEY `idx_host` (`host_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
--- 为 MN_bt 表追加节点默认 PHP 版本列（V1.82 起每个宝塔节点独立管理 PHP 版本）
-ALTER TABLE `MN_bt` ADD COLUMN `mrbts_php` varchar(10) NOT NULL DEFAULT '' AFTER `qk`;

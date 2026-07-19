@@ -1,15 +1,4 @@
-<?php
-/**
- * 管理员端 - 节点 PHP 版本管理
- */
-if (!defined('IN_CRONLITE')) {
-	exit;
-}
-
-$nodes = hosting_node_list_all();
-$title = $title ?? '节点PHP管理';
-mnbt_admin_include('head');
-?>
+<?php mnbt_admin_include('head'); ?>
 <div class="container-fluid p-t-15">
 	<div class="card">
 		<div class="card-header">
@@ -17,9 +6,10 @@ mnbt_admin_include('head');
 		</div>
 		<div class="card-body">
 			<div class="alert alert-info">
-				<i class="mdi mdi-information"></i> 每个宝塔节点可独立设置默认 PHP 版本。节点未设置时，系统会自动从宝塔 API 检测最新版本。
+				<i class="mdi mdi-information"></i> 每个宝塔节点可独立设置默认 PHP 版本。节点未设置时，系统自动从宝塔 API 检测最新版本。
 			</div>
 
+			<?php $nodes = mnbt_node_list_all(); ?>
 			<?php if (empty($nodes)): ?>
 				<div class="alert alert-warning">尚未添加任何宝塔节点。</div>
 			<?php else: ?>
@@ -29,8 +19,8 @@ mnbt_admin_include('head');
 							<tr>
 								<th style="width:60px">#</th>
 								<th>节点代号</th>
-								<th style="width:130px">当前默认 PHP</th>
-								<th style="width:130px">操作</th>
+								<th style="width:140px">当前默认 PHP</th>
+								<th style="width:280px">操作</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -68,7 +58,6 @@ mnbt_admin_include('head');
 		</div>
 	</div>
 
-	<!-- 版本选择弹窗 -->
 	<div class="modal fade" id="versionModal" tabindex="-1">
 		<div class="modal-dialog">
 			<div class="modal-content">
@@ -88,13 +77,6 @@ mnbt_admin_include('head');
 </div>
 
 <script>
-function ajax(gn, data, cb) {
-	$.post('./ajax.php', $.extend({gn: gn}, data), function(res) {
-		try { res = typeof res === 'string' ? JSON.parse(res) : res; } catch(e) {}
-		cb(res);
-	});
-}
-
 function fetchVersions(btdh) {
 	var btn = $('#btn_fetch_' + btdh);
 	btn.prop('disabled', true).html('<i class="mdi mdi-loading mdi-spin"></i> 获取中...');
@@ -102,27 +84,22 @@ function fetchVersions(btdh) {
 	$('#versionList').html('<div class="text-center text-muted p-4">加载中...</div>');
 	$('#versionModal').modal('show');
 
-	ajax('p_hosting_node_php_list', {btdh: btdh}, function(res) {
+	$.post('./ajax.php', {gn: 'list_node_php', btdh: btdh}, function(res) {
+		try { res = typeof res === 'string' ? JSON.parse(res) : res; } catch(e) {}
 		btn.prop('disabled', false).html('<i class="mdi mdi-cloud-download"></i> 获取版本');
-		if (res.qk !== 1) {
-			$('#versionList').html('<div class="alert alert-danger">' + (res.msg || res.code || '获取失败') + '</div>');
+		if (!res.versions || res.versions.length === 0) {
+			$('#versionList').html('<div class="alert alert-warning">' + (res.msg || '该节点未安装任何 PHP 版本或无法获取') + '</div>');
 			return;
 		}
-		var versions = res.versions || [];
 		var current = res.current_default || '';
-		var html = '';
-		if (versions.length === 0) {
-			html = '<div class="alert alert-warning">该节点未安装任何 PHP 版本</div>';
-		} else {
-			html += '<div class="list-group list-group-flush">';
-			versions.forEach(function(v) {
-				var active = v.version === current ? ' active' : '';
-				var badge = v.version === current ? ' <span class="badge badge-success float-right">当前默认</span>' : '';
-				html += '<a href="javascript:;" class="list-group-item list-group-item-action' + active + '" onclick="setVersion(\'' + btdh + '\', \'' + v.version + '\')">' +
-					'<strong>' + v.version + '</strong> - ' + v.name + badge + '</a>';
-			});
-			html += '</div>';
-		}
+		var html = '<div class="list-group list-group-flush">';
+		res.versions.forEach(function(v) {
+			var active = v.version === current ? ' active' : '';
+			var badge = v.version === current ? ' <span class="badge badge-success float-right">当前默认</span>' : '';
+			html += '<a href="javascript:;" class="list-group-item list-group-item-action' + active + '" onclick="setVersion(\'' + btdh + '\', \'' + v.version + '\')">' +
+				'<strong>' + v.version + '</strong> - ' + v.name + badge + '</a>';
+		});
+		html += '</div>';
 		$('#versionList').html(html);
 	});
 }
@@ -130,7 +107,8 @@ function fetchVersions(btdh) {
 function autoDetect(btdh) {
 	var btn = $('#btn_detect_' + btdh);
 	btn.prop('disabled', true).html('<i class="mdi mdi-loading mdi-spin"></i> 检测中...');
-	ajax('p_hosting_node_php_auto_detect', {btdh: btdh}, function(res) {
+	$.post('./ajax.php', {gn: 'auto_detect_node_php', btdh: btdh}, function(res) {
+		try { res = typeof res === 'string' ? JSON.parse(res) : res; } catch(e) {}
 		btn.prop('disabled', false).html('<i class="mdi mdi-magic"></i> 自动设置最新');
 		if (res.qk === 1) {
 			$('#php_label_' + btdh).html('<span class="badge badge-success">' + (res.version || '') + '</span>');
@@ -142,7 +120,8 @@ function autoDetect(btdh) {
 }
 
 function setVersion(btdh, version) {
-	ajax('p_hosting_node_php_set', {btdh: btdh, version: version}, function(res) {
+	$.post('./ajax.php', {gn: 'set_node_php', btdh: btdh, version: version}, function(res) {
+		try { res = typeof res === 'string' ? JSON.parse(res) : res; } catch(e) {}
 		if (res.qk === 1) {
 			$('#php_label_' + btdh).html('<span class="badge badge-success">' + version + '</span>');
 			$('#versionModal').modal('hide');

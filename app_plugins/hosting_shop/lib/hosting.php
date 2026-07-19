@@ -325,93 +325,10 @@ function hosting_node_list_all()
 	return $DB->get_all_prepare("SELECT * FROM MN_bt ORDER BY id ASC") ?: [];
 }
 
-/**
- * 获取节点的默认 PHP 版本。
- * 优先使用节点自定义的 mrbts_php，为空时自动检测最新版本。
- */
-function hosting_node_get_default_php($btdh)
-{
-	global $DB;
-	$node = $DB->get_row_prepare("SELECT mrbts_php FROM MN_bt WHERE btdh=? LIMIT 1", [$btdh]);
-	$php = $node['mrbts_php'] ?? '';
-	if ($php !== '' && $php !== '00') {
-		return $php;
-	}
-	// 自动检测最新版本
-	$detected = hosting_node_auto_detect_php($btdh);
-	return $detected['ok'] ? $detected['version'] : '';
-}
-
-/**
- * 设置节点的默认 PHP 版本。
- */
-function hosting_node_set_default_php($btdh, $version)
-{
-	global $DB;
-	$version = trim((string)$version);
-	if ($version === '') {
-		return false;
-	}
-	return (bool)$DB->query_prepare(
-		"UPDATE MN_bt SET mrbts_php=? WHERE btdh=? LIMIT 1",
-		[$version, $btdh]
-	);
-}
-
-/**
- * 从宝塔 API 获取节点可用 PHP 版本列表。
- * @return array ['ok'=>bool, 'versions'=>array, 'msg'=>string]
- */
-function hosting_node_php_list($btdh)
-{
-	$node = hosting_node_get($btdh);
-	if (!$node) {
-		return ['ok' => false, 'msg' => '节点不存在'];
-	}
-	$bt_api_file = ROOT . 'MPHX/bt_api.php';
-	if (!is_file($bt_api_file)) {
-		return ['ok' => false, 'msg' => 'bt_api 类文件缺失'];
-	}
-	require_once $bt_api_file;
-
-	$btipe = ($node['ptl'] == 'true' ? 'https' : 'http') . '://' . $node['btip'] . ':' . $node['btdk'];
-	$api = new bt_api($btipe, $node['btmy']);
-	$result = $api->btapi_listphp();
-	if (!is_array($result)) {
-		return ['ok' => false, 'msg' => '无法获取 PHP 版本列表'];
-	}
-	$versions = [];
-	foreach ($result as $v) {
-		if (($v['status'] ?? false) && ($v['version'] ?? '') !== '00') {
-			$versions[] = ['version' => $v['version'], 'name' => $v['name'] ?? ('PHP-' . $v['version'])];
-		}
-	}
-	if (empty($versions)) {
-		return ['ok' => false, 'msg' => '该节点未安装任何 PHP 版本'];
-	}
-	// 按版本号降序排列（最新在前）
-	usort($versions, function ($a, $b) {
-		return strcmp($b['version'], $a['version']);
-	});
-	return ['ok' => true, 'versions' => $versions, 'latest' => $versions[0]['version']];
-}
-
-/**
- * 自动检测节点最新的 PHP 版本并保存为默认版本。
- * @return array ['ok'=>bool, 'version'=>string, 'msg'=>string]
- */
-function hosting_node_auto_detect_php($btdh)
-{
-	$result = hosting_node_php_list($btdh);
-	if (!$result['ok']) {
-		return $result;
-	}
-	$latest = $result['latest'];
-	if (!hosting_node_set_default_php($btdh, $latest)) {
-		return ['ok' => false, 'msg' => '保存默认 PHP 版本失败'];
-	}
-	return ['ok' => true, 'version' => $latest, 'msg' => '已设置默认 PHP 版本为 ' . $latest];
-}
+/* ============================================================
+ *  节点 PHP 版本管理已移至系统底层 MPHX/bt_php.function.php
+ *  请使用 mnbt_node_get_php() / mnbt_node_set_php() 等函数
+ * ============================================================ */
 
 /* ============================================================
  *  订单管理
@@ -656,7 +573,24 @@ function hosting_open_host($order_id)
 		$cp_eh_ftp = 'true';
 		$cp_eh_sql = 'true';
 	}
-	$phpVersion = hosting_node_get_default_php($order['node']);
+	// 确定 PHP 版本：优先使用节点已保存的，否则自动检测最新版本
+	$phpVersion = $node['mrbts_php'] ?? '';
+	if ($phpVersion === '' || $phpVersion === '00') {
+		$phpList = $api->btapi_listphp();
+		if (is_array($phpList)) {
+			$versions = [];
+			foreach ($phpList as $v) {
+				if (($v['status'] ?? false) && ($v['version'] ?? '') !== '00') {
+					$versions[] = $v['version'];
+				}
+			}
+			if (!empty($versions)) {
+				usort($versions, function($a, $b) { return strcmp($b, $a); });
+				$phpVersion = $versions[0];
+				$DB->query_prepare("UPDATE MN_bt SET mrbts_php=? WHERE btdh=? LIMIT 1", [$phpVersion, $order['node']]);
+			}
+		}
+	}
 	if ($phpVersion === '' || $phpVersion === '00') {
 		hosting_order_set_status($order_id, 'failed', '无法获取节点 PHP 版本');
 		return ['ok' => false, 'msg' => '无法获取该节点的 PHP 版本，请先在宝塔面板安装 PHP 或在节点管理中设置默认 PHP 版本'];

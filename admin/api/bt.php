@@ -16,7 +16,16 @@ if($egn=='addbt') {
 	$ktmy=md5($dati);
 	$qmk=md5($kiterw);
 	logjl($user,'添加宝塔','添加了一个编号为'.$bh.'的宝塔','添加成功',$DB);
-	if($DB->query_prepare("INSERT INTO `MN_bt` (`id`, `btip`, `btdk`, `btmy`, `date`, `ktmy`, `qmk`, `btdh`, `qk`, `btos`, `als`, `ptl`, `ftpdz`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)", [$id, $ip, $dk, $key, $date, $ktmy, $qmk, $bh, $kg, $btos, $urlla, $xieyi, $ftpdz]))json_exit('添加成功'); else json_exit('添加失败'.$DB->error());
+	if($DB->query_prepare("INSERT INTO `MN_bt` (`id`, `btip`, `btdk`, `btmy`, `date`, `ktmy`, `qmk`, `btdh`, `qk`, `btos`, `als`, `ptl`, `ftpdz`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)", [$id, $ip, $dk, $key, $date, $ktmy, $qmk, $bh, $kg, $btos, $urlla, $xieyi, $ftpdz])) {
+		// 添加成功后自动检测并设置默认 PHP 版本（非阻塞）
+		if (is_file(SYSTEM_ROOT . 'bt_php.function.php')) {
+			require_once SYSTEM_ROOT . 'bt_php.function.php';
+			mnbt_node_auto_detect_php($bh);
+		}
+		json_exit('添加成功');
+	} else {
+		json_exit('添加失败'.$DB->error());
+	}
 	return;
 }
 if($egn=='btsc') {
@@ -113,4 +122,47 @@ if($egn=='btztjc') {
 		exit(json_encode(['qk'=>0,'code'=>'连接失败：'.$e->getMessage(),'titco'=>'text-danger']));
 	}
 }
+
+// ====== 节点 PHP 版本管理（系统底层，独立于插件） ======
+
+if ($egn === 'list_node_php') {
+	$btdh = trim((string)($_POST['btdh'] ?? ''));
+	if ($btdh === '') {
+		exit(json_encode(['qk' => 0, 'msg' => '请指定节点']));
+	}
+	require_once SYSTEM_ROOT . 'bt_php.function.php';
+	$result = mnbt_node_php_list($btdh);
+	if (!$result['ok']) {
+		exit(json_encode(['qk' => 0, 'msg' => $result['msg']]));
+	}
+	$currentDefault = mnbt_node_get_php($btdh);
+	exit(json_encode(['qk' => 1, 'versions' => $result['versions'], 'latest' => $result['latest'], 'current_default' => $currentDefault]));
+}
+
+if ($egn === 'auto_detect_node_php') {
+	$btdh = trim((string)($_POST['btdh'] ?? ''));
+	if ($btdh === '') {
+		exit(json_encode(['qk' => 0, 'msg' => '请指定节点']));
+	}
+	require_once SYSTEM_ROOT . 'bt_php.function.php';
+	$result = mnbt_node_auto_detect_php($btdh);
+	if (!$result['ok']) {
+		exit(json_encode(['qk' => 0, 'msg' => $result['msg']]));
+	}
+	exit(json_encode(['qk' => 1, 'version' => $result['version'], 'msg' => $result['msg']]));
+}
+
+if ($egn === 'set_node_php') {
+	$btdh = trim((string)($_POST['btdh'] ?? ''));
+	$version = trim((string)($_POST['version'] ?? ''));
+	if ($btdh === '' || $version === '') {
+		exit(json_encode(['qk' => 0, 'msg' => '参数不完整']));
+	}
+	require_once SYSTEM_ROOT . 'bt_php.function.php';
+	if (!mnbt_node_set_php($btdh, $version)) {
+		exit(json_encode(['qk' => 0, 'msg' => '保存失败']));
+	}
+	exit(json_encode(['qk' => 1, 'msg' => '已设置节点 ' . htmlspecialchars($btdh) . ' 的默认 PHP 版本为 ' . $version]));
+}
+
 return;

@@ -61,6 +61,7 @@ CREATE TABLE `MN_bt` (
   `ftpdz` varchar(50) NOT NULL,					-- 自定义FTP地址
   `ptl` varchar(50) NOT NULL,					-- 是否开启安全访问(true和false)
   `qk` varchar(50) NOT NULL,					-- 目前宝塔情况
+  `mrbts_php` varchar(10) NOT NULL DEFAULT '',	-- 节点默认 PHP 版本
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
@@ -339,3 +340,5 @@ CREATE TABLE `MN_plugin_option` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_plugin_k` (`plugin_slug`,`k`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+ALTER TABLE `MN_bt` ADD COLUMN `mrbts_php` varchar(10) NOT NULL DEFAULT '' AFTER `qk`;
