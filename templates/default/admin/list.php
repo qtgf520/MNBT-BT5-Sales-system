@@ -101,7 +101,9 @@ if($set=='bt'){
         <a href="#!" class="btn btn-xs btn-default" title="编辑" data-toggle="tooltip"><i class="mdi mdi-pencil"></i></a>：编辑纪录
         <a href="#!" class="btn btn-xs btn-default" title="swapidc对接文档" data-toggle="tooltip"><i class="mdi mdi-buffer"></i></a>：SWAPIDC对接文档<br/>
         <a href="#!" class="btn btn-xs btn-default" title="删除" data-toggle="tooltip"><i class="mdi mdi-window-close"></i></a>：删除纪录
-        <a href="#!" class="btn btn-xs btn-default" title="魔方对接文档" data-toggle="tooltip"><i class="mdi mdi-cube-outline"></i></a>：魔方对接文档
+        <a href="#!" class="btn btn-xs btn-default" title="魔方对接文档" data-toggle="tooltip"><i class="mdi mdi-cube-outline"></i></a>：魔方对接文档<br/>
+        <a href="#!" class="btn btn-xs btn-info" title="获取PHP版本" data-toggle="tooltip"><i class="mdi mdi-cloud-download"></i></a>：获取PHP版本
+        <a href="#!" class="btn btn-xs btn-success" title="自动设置最新PHP" data-toggle="tooltip"><i class="mdi mdi-magic"></i></a>：自动设置最新PHP
           </p></div>
           <div id="toolbar" class="toolbar-btn-action">
             <button id="btn_add" type="button" class="btn btn-primary m-r-5 js-create-tab" aria-hidden="true" data-title="添加宝塔" data-url="add.php?gn=bt">
@@ -120,7 +122,74 @@ if($set=='bt'){
   </div>
   
 </div>
+
+<!-- PHP 版本选择弹窗 -->
+<div class="modal fade" id="versionModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">选择 PHP 版本 - <span id="vNodeLabel"></span></h5>
+                <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+            </div>
+            <div class="modal-body" id="versionList" style="max-height:400px;overflow-y:auto;">
+                <div class="text-center text-muted p-4">加载中...</div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script type="text/javascript">
+
+function fetchVersions(btdh) {
+    $('#vNodeLabel').text(btdh);
+    $('#versionList').html('<div class="text-center text-muted p-4">加载中...</div>');
+    $('#versionModal').modal('show');
+    $.post('./ajax.php', {gn: 'list_node_php', btdh: btdh}, function(res) {
+        try { res = typeof res === 'string' ? JSON.parse(res) : res; } catch(e) {}
+        if (!res.versions || res.versions.length === 0) {
+            $('#versionList').html('<div class="alert alert-warning">' + (res.msg || '该节点未安装任何 PHP 版本或无法获取') + '</div>');
+            return;
+        }
+        var current = res.current_default || '';
+        var html = '<div class="list-group list-group-flush">';
+        res.versions.forEach(function(v) {
+            var active = v.version === current ? ' active' : '';
+            var badge = v.version === current ? ' <span class="badge badge-success float-right">当前默认</span>' : '';
+            html += '<a href="javascript:;" class="list-group-item list-group-item-action' + active + '" onclick="setVersion(\'' + btdh + '\', \'' + v.version + '\')">' +
+                '<strong>' + v.version + '</strong> - ' + v.name + badge + '</a>';
+        });
+        html += '</div>';
+        $('#versionList').html(html);
+    });
+}
+
+function autoDetect(btdh) {
+    $.post('./ajax.php', {gn: 'auto_detect_node_php', btdh: btdh}, function(res) {
+        try { res = typeof res === 'string' ? JSON.parse(res) : res; } catch(e) {}
+        if (res.qk === 1) {
+            $('#php_label_' + btdh).html('<span class="badge badge-success">' + (res.version || '') + '</span>');
+            msalert(1, '设置成功：默认 PHP 版本已设为 ' + (res.version || ''), 2000);
+        } else {
+            msalert(4, res.msg || res.code || '操作失败', 2000);
+        }
+    });
+}
+
+function setVersion(btdh, version) {
+    $.post('./ajax.php', {gn: 'set_node_php', btdh: btdh, version: version}, function(res) {
+        try { res = typeof res === 'string' ? JSON.parse(res) : res; } catch(e) {}
+        if (res.qk === 1) {
+            $('#php_label_' + btdh).html('<span class="badge badge-success">' + version + '</span>');
+            $('#versionModal').modal('hide');
+            msalert(1, '已设置节点 ' + btdh + ' 的默认 PHP 版本为 ' + version, 2000);
+        } else {
+            msalert(4, res.msg || res.code || '操作失败', 2000);
+        }
+    });
+}
 
 function hqxzh() {		//获取选中行
     var selRows = $("#tb_departments").bootstrapTable("getSelections");
@@ -308,6 +377,12 @@ $('#tb_departments').bootstrapTable({
             },
             'click .dj-mf': function (event, value, row, index) {
                 window.location.href='tutorial.php?gn=mr&sz='+row.id;
+            },
+            'click .php-fetch-btn': function (event, value, row, index) {
+                fetchVersions(row.btdh);
+            },
+            'click .php-detect-btn': function (event, value, row, index) {
+                autoDetect(row.btdh);
             }
         }
     }],
@@ -334,7 +409,9 @@ function btnGroup ()
         '<a href="#!" class="btn btn-xs btn-default edit-btn" title="编辑" data-toggle="tooltip"><i class="mdi mdi-pencil"></i></a>' +
         '<a href="#!" class="btn btn-xs btn-default dj-sw" title="swapidc对接文档" data-toggle="tooltip"><i class="mdi mdi-buffer"></i></a>' +
         '<a href="#!" class="btn btn-xs btn-default dj-mf" title="魔方对接文档" data-toggle="tooltip"><i class="mdi mdi-cube-outline"></i></a>'+
-        '<a href="#!" class="btn btn-xs btn-default del-btn" title="删除" data-toggle="tooltip"><i class="mdi mdi-window-close"></i></a>';
+        '<a href="#!" class="btn btn-xs btn-default del-btn" title="删除" data-toggle="tooltip"><i class="mdi mdi-window-close"></i></a>' +
+        '<a href="#!" class="btn btn-xs btn-info php-fetch-btn" title="获取PHP版本" data-toggle="tooltip"><i class="mdi mdi-cloud-download"></i></a>' +
+        '<a href="#!" class="btn btn-xs btn-success php-detect-btn" title="自动设置最新PHP" data-toggle="tooltip"><i class="mdi mdi-magic"></i></a>';
     return html;
 }
 

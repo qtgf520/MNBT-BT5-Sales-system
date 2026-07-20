@@ -33,9 +33,11 @@ function mnbt_node_php_list($btdh)
     if (!is_array($result)) {
         return ['ok' => false, 'msg' => '无法获取 PHP 版本列表'];
     }
+    // 移除纯静态(0)和自定义/其他(1)，与用户端处理保持一致
+    unset($result[0], $result[1]);
     $versions = [];
     foreach ($result as $v) {
-        if (($v['status'] ?? false) && ($v['version'] ?? '') !== '00') {
+        if (($v['status'] ?? false) && ($v['version'] ?? '') !== '00' && ($v['version'] ?? '') !== '0') {
             $versions[] = ['version' => $v['version'], 'name' => $v['name'] ?? ('PHP-' . $v['version'])];
         }
     }

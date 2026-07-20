@@ -97,7 +97,6 @@
                 <li><a class="multitabs" href="add.php?gn=bt">添加宝塔</a></li>
                 <li><a class="multitabs" href="node.php">节点列表</a></li>
                 <li><a class="multitabs" href="node.php?tab=scan">违禁词扫描</a></li>
-                <li><a class="multitabs" href="bt_php.php">节点PHP版本</a></li>
               </ul>
             </li>
 
