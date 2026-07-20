@@ -75,7 +75,6 @@
     <li> <a class="multitabs" href="notice.php">通知日志</a> </li>
   </ul>
 </li>
-<?php }?>
 <?php
 if (function_exists('mnbt_plugin_render_menu_user_html')) {
   echo mnbt_plugin_render_menu_user_html();
