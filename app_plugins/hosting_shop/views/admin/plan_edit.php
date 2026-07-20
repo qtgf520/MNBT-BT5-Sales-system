@@ -15,6 +15,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['act'] ?? '') === 'save') {
 		'id' => $id,
 		'name' => $_POST['name'] ?? '',
 		'description' => $_POST['description'] ?? '',
+		'category' => $_POST['category'] ?? '',
+		'node' => $_POST['node'] ?? '',
 		'spec_web' => (int)($_POST['spec_web'] ?? 0),
 		'spec_sql' => (int)($_POST['spec_sql'] ?? 0),
 		'spec_flow' => (int)($_POST['spec_flow'] ?? 0),
@@ -64,6 +66,21 @@ mnbt_admin_include('head');
 					<label class="col-sm-3 col-form-label">套餐介绍</label>
 					<div class="col-sm-9">
 						<textarea name="description" class="form-control" rows="3"><?= htmlspecialchars($plan['description'] ?? '', ENT_QUOTES) ?></textarea>
+					</div>
+				</div>
+				<div class="form-row">
+					<div class="form-group col-md-6">
+						<label>套餐分类</label>
+						<input type="text" name="category" class="form-control" placeholder="如：入门型、标准型、企业型" value="<?= htmlspecialchars($plan['category'] ?? '', ENT_QUOTES) ?>">
+					</div>
+					<div class="form-group col-md-6">
+						<label>固定开通节点 <span class="text-danger">*</span></label>
+						<select name="node" class="form-control" required>
+							<option value="">请选择宝塔节点</option>
+							<?php foreach (hosting_node_list_all() as $n): ?>
+								<option value="<?= htmlspecialchars($n['btdh'], ENT_QUOTES) ?>" <?= (($plan['node'] ?? '') === $n['btdh']) ? 'selected' : '' ?>><?= htmlspecialchars($n['btdh'], ENT_QUOTES) ?> (<?= htmlspecialchars($n['btip'], ENT_QUOTES) ?>)</option>
+							<?php endforeach; ?>
+						</select>
 					</div>
 				</div>
 				<div class="form-row">

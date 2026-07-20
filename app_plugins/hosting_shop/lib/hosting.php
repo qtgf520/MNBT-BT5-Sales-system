@@ -94,8 +94,18 @@ function hosting_upgrade_schema()
 	if (!in_array('enabled_periods', $existing, true)) {
 		$toAdd[] = "ADD COLUMN `enabled_periods` varchar(255) NOT NULL DEFAULT '' COMMENT '允许的购买周期，逗号分隔'";
 	}
+	if (!in_array('category', $existing, true)) {
+		$toAdd[] = "ADD COLUMN `category` varchar(50) NOT NULL DEFAULT '' COMMENT '套餐分类'";
+	}
+	if (!in_array('node', $existing, true)) {
+		$toAdd[] = "ADD COLUMN `node` varchar(250) NOT NULL DEFAULT '' COMMENT '固定开通节点 btdh'";
+	}
 	if (!empty($toAdd)) {
 		$DB->query("ALTER TABLE MN_plugin_hosting_plan " . implode(', ', $toAdd));
+	}
+	// 删除已废弃的 spec_type 字段
+	if (in_array('spec_type', $existing, true)) {
+		$DB->query("ALTER TABLE MN_plugin_hosting_plan DROP COLUMN `spec_type`");
 	}
 }
 
@@ -253,7 +263,8 @@ function hosting_plan_save($data)
 	$fields = [
 		'name' => trim((string)($data['name'] ?? '')),
 		'description' => trim((string)($data['description'] ?? '')),
-		'spec_type' => 0,
+		'category' => trim((string)($data['category'] ?? '')),
+		'node' => trim((string)($data['node'] ?? '')),
 		'spec_web' => max(0, (int)($data['spec_web'] ?? 0)),
 		'spec_sql' => max(0, (int)($data['spec_sql'] ?? 0)),
 		'spec_flow' => max(0, (int)($data['spec_flow'] ?? 0)),
@@ -272,6 +283,9 @@ function hosting_plan_save($data)
 	if ($fields['name'] === '') {
 		return '套餐名称不能为空';
 	}
+	if ($fields['node'] === '') {
+		return '请选择固定开通节点';
+	}
 	// 至少启用一个有效周期
 	if ($enabled === []) {
 		return '请至少选择一个购买周期';
@@ -280,15 +294,15 @@ function hosting_plan_save($data)
 	$id = (int)($data['id'] ?? 0);
 	if ($id > 0) {
 		$ok = $DB->query_prepare(
-			"UPDATE MN_plugin_hosting_plan SET name=?, description=?, spec_type=?, spec_web=?, spec_sql=?, spec_flow=?, spec_domain=?, price_month_cents=?, price_quarter_cents=?, price_half_year_cents=?, price_year_cents=?, price_two_year_cents=?, price_three_year_cents=?, enabled_periods=?, status=?, sort=?, updated_at=? WHERE id=?",
-			[$fields['name'], $fields['description'], $fields['spec_type'], $fields['spec_web'], $fields['spec_sql'], $fields['spec_flow'], $fields['spec_domain'], $fields['price_month_cents'], $fields['price_quarter_cents'], $fields['price_half_year_cents'], $fields['price_year_cents'], $fields['price_two_year_cents'], $fields['price_three_year_cents'], $fields['enabled_periods'], $fields['status'], $fields['sort'], $fields['updated_at'], $id]
+			"UPDATE MN_plugin_hosting_plan SET name=?, description=?, category=?, node=?, spec_web=?, spec_sql=?, spec_flow=?, spec_domain=?, price_month_cents=?, price_quarter_cents=?, price_half_year_cents=?, price_year_cents=?, price_two_year_cents=?, price_three_year_cents=?, enabled_periods=?, status=?, sort=?, updated_at=? WHERE id=?",
+			[$fields['name'], $fields['description'], $fields['category'], $fields['node'], $fields['spec_web'], $fields['spec_sql'], $fields['spec_flow'], $fields['spec_domain'], $fields['price_month_cents'], $fields['price_quarter_cents'], $fields['price_half_year_cents'], $fields['price_year_cents'], $fields['price_two_year_cents'], $fields['price_three_year_cents'], $fields['enabled_periods'], $fields['status'], $fields['sort'], $fields['updated_at'], $id]
 		);
 		return $ok ? true : '更新失败';
 	}
 	$fields['created_at'] = $now;
 	$ok = $DB->query_prepare(
-		"INSERT INTO MN_plugin_hosting_plan (name, description, spec_type, spec_web, spec_sql, spec_flow, spec_domain, price_month_cents, price_quarter_cents, price_half_year_cents, price_year_cents, price_two_year_cents, price_three_year_cents, enabled_periods, status, sort, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-		[$fields['name'], $fields['description'], $fields['spec_type'], $fields['spec_web'], $fields['spec_sql'], $fields['spec_flow'], $fields['spec_domain'], $fields['price_month_cents'], $fields['price_quarter_cents'], $fields['price_half_year_cents'], $fields['price_year_cents'], $fields['price_two_year_cents'], $fields['price_three_year_cents'], $fields['enabled_periods'], $fields['status'], $fields['sort'], $fields['created_at'], $fields['updated_at']]
+		"INSERT INTO MN_plugin_hosting_plan (name, description, category, node, spec_web, spec_sql, spec_flow, spec_domain, price_month_cents, price_quarter_cents, price_half_year_cents, price_year_cents, price_two_year_cents, price_three_year_cents, enabled_periods, status, sort, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+		[$fields['name'], $fields['description'], $fields['category'], $fields['node'], $fields['spec_web'], $fields['spec_sql'], $fields['spec_flow'], $fields['spec_domain'], $fields['price_month_cents'], $fields['price_quarter_cents'], $fields['price_half_year_cents'], $fields['price_year_cents'], $fields['price_two_year_cents'], $fields['price_three_year_cents'], $fields['enabled_periods'], $fields['status'], $fields['sort'], $fields['created_at'], $fields['updated_at']]
 	);
 	return $ok ? true : '新增失败';
 }
@@ -401,12 +415,11 @@ function hosting_order_list_all($page = 1, $per_page = 30, $filters = [])
  * 创建购买订单（未支付）。
  *
  * @param array $user      user_info 当前用户
- * @param array $plan      套餐行
+ * @param array $plan      套餐行（内含固定 node）
  * @param string $period   month/year
- * @param string $node     MN_bt.btdh
  * @return array ['ok'=>bool, 'order_no'=>string, 'order_id'=>int, 'msg'=>string]
  */
-function hosting_order_create($user, $plan, $period, $node)
+function hosting_order_create($user, $plan, $period)
 {
 	global $DB, $date;
 	$periods = hosting_periods();
@@ -422,8 +435,9 @@ function hosting_order_create($user, $plan, $period, $node)
 	if ($amount_cents < 0) {
 		return ['ok' => false, 'msg' => '该套餐此周期价格异常'];
 	}
-	if (!hosting_node_get($node)) {
-		return ['ok' => false, 'msg' => '所选节点不存在'];
+	$node = trim((string)($plan['node'] ?? ''));
+	if ($node === '' || !hosting_node_get($node)) {
+		return ['ok' => false, 'msg' => '套餐未配置有效开通节点'];
 	}
 	$now = $date ?: date('Y-m-d H:i:s');
 	$order_no = date("YmdHis") . mt_rand(1000, 9999);

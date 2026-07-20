@@ -72,12 +72,10 @@ mnbt_add_action('order.paid', function ($order_row, $ctx = []) {
 mnbt_register_route('GET', '/shop', function ($params, $ctx) {
 	hosting_require_user();
 	$plans = hosting_plan_list_active();
-	$nodes = hosting_node_list();
 
 	hosting_render('shop', [
 		'page_title' => '主机套餐',
 		'plans' => $plans,
-		'nodes' => $nodes,
 	]);
 });
 
@@ -91,14 +89,12 @@ mnbt_register_route('GET', '/shop/order/{plan_id}', function ($params, $ctx) {
 		echo '套餐不存在或已下架';
 		return;
 	}
-	$nodes = hosting_node_list();
 	// 获取已启用的支付方式
 	$methods = function_exists('mnbt_get_enabled_payment_methods') ? mnbt_get_enabled_payment_methods() : [];
 
 	hosting_render('order', [
 		'page_title' => '购买：' . $plan['name'],
 		'plan' => $plan,
-		'nodes' => $nodes,
 		'methods' => $methods,
 	]);
 });
@@ -139,7 +135,6 @@ mnbt_register_route('POST', '/shop/api/create_order', function ($params, $ctx) {
 
 	$plan_id = (int)($_POST['plan_id'] ?? 0);
 	$period = isset($_POST['period']) ? trim($_POST['period']) : 'month';
-	$node = isset($_POST['node']) ? trim($_POST['node']) : '';
 	$type = isset($_POST['type']) ? trim($_POST['type']) : '';
 
 	// 校验套餐
@@ -160,9 +155,10 @@ mnbt_register_route('POST', '/shop/api/create_order', function ($params, $ctx) {
 	if ($amount_cents < 0) {
 		hosting_json('该套餐此周期价格异常');
 	}
-	// 校验节点
+	// 节点已由套餐固定配置，无需前端传入
+	$node = trim((string)($plan['node'] ?? ''));
 	if ($node === '' || !hosting_node_get($node)) {
-		hosting_json('请选择有效的开通节点');
+		hosting_json('套餐未配置有效开通节点，请联系管理员');
 	}
 	// 非 0 元订单校验支付方式；0 元订单无需选择支付方式
 	if ($amount_cents > 0) {
@@ -171,8 +167,8 @@ mnbt_register_route('POST', '/shop/api/create_order', function ($params, $ctx) {
 		}
 	}
 
-	// 创建 hosting 订单
-	$create = hosting_order_create($user, $plan, $period, $node);
+	// 创建 hosting 订单（节点从套餐读取）
+	$create = hosting_order_create($user, $plan, $period);
 	if (empty($create['ok'])) {
 		hosting_json($create['msg'] ?? '创建订单失败');
 	}

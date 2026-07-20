@@ -2,7 +2,6 @@
 if (!defined('IN_CRONLITE')) { exit; }
 $page_title = $page_title ?? '主机套餐';
 $plans = $plans ?? [];
-$nodes = $nodes ?? [];
 ob_start();
 ?>
 <div class="hs-section">
@@ -18,6 +17,7 @@ ob_start();
       <div class="hs-plan-card">
         <div class="hs-plan-head">
           <h2><?= htmlspecialchars($plan['name']) ?></h2>
+          <?php if (!empty($plan['category'])): ?><span class="hs-plan-tag"><?= htmlspecialchars($plan['category']) ?></span><?php endif; ?>
         </div>
         <div class="hs-plan-desc"><?= nl2br(htmlspecialchars($plan['description'])) ?></div>
         <ul class="hs-plan-spec">
@@ -46,18 +46,7 @@ ob_start();
   </div>
 <?php endif; ?>
 
-<?php if (!empty($nodes)): ?>
-  <div class="layui-card">
-    <div class="layui-card-header" style="font-weight:600;">开通节点</div>
-    <div class="layui-card-body" style="padding:0 16px;">
-      <ul class="hs-node-list">
-        <?php foreach ($nodes as $n): ?>
-          <li><span class="hs-node-name"><?= htmlspecialchars($n['btdh']) ?></span></li>
-        <?php endforeach; ?>
-      </ul>
-    </div>
-  </div>
-<?php endif; ?>
+
 <?php
 $content = ob_get_clean();
 include __DIR__ . '/layout.php';

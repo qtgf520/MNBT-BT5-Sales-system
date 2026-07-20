@@ -1,7 +1,7 @@
 <?php
 if (!defined('IN_CRONLITE')) { exit; }
 $page_title = $page_title ?? '购买套餐';
-$plan = $plan ?? null; $nodes = $nodes ?? []; $methods = $methods ?? [];
+$plan = $plan ?? null; $methods = $methods ?? [];
 ob_start();
 ?>
 <div class="layui-card">
@@ -18,6 +18,7 @@ ob_start();
       <li><span>数据库</span><b><?= (int)$plan['spec_sql'] ?> MB</b></li>
       <li><span>流量</span><b><?= (int)$plan['spec_flow'] > 0 ? ((int)$plan['spec_flow'].' GB') : '不限' ?></b></li>
       <li><span>域名绑定</span><b><?= (int)$plan['spec_domain'] ?> 个</b></li>
+      <li><span>开通节点</span><b><?= htmlspecialchars($plan['node'] ?: '—') ?></b></li>
     </ul>
 
     <form class="hs-order-form" id="orderForm">
@@ -35,22 +36,6 @@ ob_start();
           <?php endforeach; ?>
           <?php if ($enabled === []): ?>
             <span style="color:#999;">该套餐未设置购买周期</span>
-          <?php endif; ?>
-        </div>
-      </div>
-
-      <div class="layui-form-item">
-        <label class="layui-form-label">开通节点</label>
-        <div class="layui-input-block">
-          <?php if (empty($nodes)): ?>
-            <p style="color:#999;padding-top:8px;">管理员尚未添加宝塔节点，无法购买。</p>
-          <?php else: ?>
-            <select name="node" required class="layui-input" style="max-width:360px;">
-              <option value="">请选择节点</option>
-              <?php foreach ($nodes as $n): ?>
-                <option value="<?= htmlspecialchars($n['btdh']) ?>"><?= htmlspecialchars($n['btdh']) ?></option>
-              <?php endforeach; ?>
-            </select>
           <?php endif; ?>
         </div>
       </div>
@@ -80,7 +65,7 @@ ob_start();
         <?php endif; ?>
       <?php endif; ?>
 
-      <?php if (!empty($nodes) && ($isFreePlan || !empty($methods))): ?>
+      <?php if ($isFreePlan || !empty($methods)): ?>
         <div class="layui-form-item">
           <div class="layui-input-block">
             <button type="submit" class="layui-btn layui-btn-lg" id="submitBtn">确认购买</button>
@@ -122,7 +107,6 @@ ob_start();
     body.append('plan_id','<?=(int)$plan['id']?>');
     var pc=form.querySelector('input[name="period"]:checked');
     body.append('period',pc?pc.value:'');
-    body.append('node',form.querySelector('select[name="node"]').value);
     var tc=form.querySelector('input[name="type"]:checked');
     body.append('type',tc?tc.value:'');
     fetch('<?=hosting_url('shop/api/create_order')?>',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:body.toString()})
